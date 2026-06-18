@@ -123,6 +123,7 @@ def verify_email():
     return jsonify({'status': 'email verified'}), 200
 
 
+
 @app.route('/request-password-reset', methods=['POST'])
 def request_password_reset():
     data = request.get_json(silent=True) or {}
