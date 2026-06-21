@@ -10,12 +10,12 @@ A multi-role accommodation management system for university students, landlords,
 - **Password reset**: Secure password recovery flow
 - **Accommodation management**: Link accommodations to universities by distance
 - **Buy/rent options**: Support for both purchase and rental properties
-- **MySQL backend**: Scalable persistence layer
+- **PostgreSQL backend**: Scalable persistence layer
 
 ## Tech Stack
 
 - Flask (Python web framework)
-- MySQL (relational database)
+- PostgreSQL (relational database)
 - JWT (authentication)
 - Werkzeug (password hashing)
 
@@ -44,15 +44,14 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Set MySQL environment variables (PowerShell)
+### 4. Set environment variables (PowerShell)
 
 ```powershell
-$env:MYSQL_HOST="localhost"
-$env:MYSQL_PORT="3306"
-$env:MYSQL_USER="root"
-$env:MYSQL_PASSWORD="your-db-password"
-$env:MYSQL_DATABASE="university_app"
+$env:DATABASE_URL="postgresql://user:password@localhost:5432/university_app"
 $env:JWT_SECRET_KEY="your-jwt-secret"
+$env:JWT_EXPIRES_HOURS="24"
+$env:EMAIL_TOKEN_EXPIRES_HOURS="24"
+$env:PASSWORD_RESET_EXPIRES_HOURS="2"
 ```
 
 ### 5. Initialize the database
@@ -95,21 +94,17 @@ The server will run on `http://localhost:5000`
 ### Universities
 - `GET /universities` - List all universities
 - `POST /universities` - Create university (school/admin)
+- `GET /universities/<id>/accommodations` - List accommodations by university
 
 ### Accommodations
 - `GET /accommodations` - List all accommodations
-- `GET /universities/<id>/accommodations` - List accommodations by university
 - `POST /accommodations` - Create accommodation (landlord/admin)
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MYSQL_HOST` | localhost | MySQL server host |
-| `MYSQL_PORT` | 3306 | MySQL server port |
-| `MYSQL_USER` | root | MySQL username |
-| `MYSQL_PASSWORD` | (empty) | MySQL password |
-| `MYSQL_DATABASE` | university_app | Database name |
+| `DATABASE_URL` | postgresql://user:password@localhost:5432/university_app | PostgreSQL connection URL |
 | `JWT_SECRET_KEY` | change-this-secret | JWT signing secret |
 | `JWT_EXPIRES_HOURS` | 24 | JWT token expiry in hours |
 | `EMAIL_TOKEN_EXPIRES_HOURS` | 24 | Email verification token expiry |

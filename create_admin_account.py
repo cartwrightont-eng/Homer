@@ -5,7 +5,6 @@ Creates a verified admin account for system management
 """
 
 import sys
-import os
 from getpass import getpass
 from models import create_user, verify_user_email, create_verification_token, get_user_by_email
 from init_db import init_db
@@ -15,7 +14,7 @@ def create_admin():
     print("🔐 ADMIN ACCOUNT CREATION SCRIPT")
     print("="*60)
     print("\nThis script creates a verified admin account for your system.")
-    print("Make sure MySQL is running before proceeding.\n")
+    print("Make sure PostgreSQL is running before proceeding.\n")
     
     # Initialize database
     print("Initializing database schema...")
