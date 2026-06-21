@@ -306,7 +306,8 @@ def unverify_landlord_route(user_id):
 
 @app.route('/accommodations', methods=['GET'])
 def list_accommodations():
-    is_student = request.args.get('student', 'false').lower() == 'true'
+    is_student = request.args.get('student')
+    is_student = is_student.lower() == 'true' if is_student else None
     availability = request.args.get('availability')
     vacancy = request.args.get('vacancy')
     return jsonify(
