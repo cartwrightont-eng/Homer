@@ -508,7 +508,7 @@ def resolve_report(report_id, resolution_notes):
     with db_cursor(commit=True) as (conn, cursor):
         cursor.execute(
             "UPDATE reports SET status='resolved', resolution_notes=%s, resolved_at=%s WHERE id=%s",
-            (resolution_notes, _format_datetime(_now()), report_id),
+            (resolution_notes, _now(), report_id),
         )
     return True
 

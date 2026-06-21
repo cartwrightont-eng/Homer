@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users(
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     is_suspended BOOLEAN NOT NULL DEFAULT FALSE,
     is_landlord_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 )
 ''')
     cursor.execute('''
@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS accommodations(
     rejection_reason TEXT,
     is_suspicious BOOLEAN NOT NULL DEFAULT FALSE,
     suspicious_reason TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(university_id) REFERENCES universities(id),
     FOREIGN KEY(owner_id) REFERENCES users(id)
 )
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS photos(
     accommodation_id INTEGER NOT NULL,
     photo_url TEXT NOT NULL,
     description TEXT,
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(accommodation_id) REFERENCES accommodations(id) ON DELETE CASCADE
 )
 ''')
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS videos(
     accommodation_id INTEGER NOT NULL,
     video_url TEXT NOT NULL,
     title TEXT,
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(accommodation_id) REFERENCES accommodations(id) ON DELETE CASCADE
 )
 ''')
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS user_tokens(
     user_id INTEGER NOT NULL,
     token TEXT NOT NULL,
     token_type TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
     used BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY(user_id) REFERENCES users(id)
 )
@@ -116,8 +116,8 @@ CREATE TABLE IF NOT EXISTS reports(
     description TEXT,
     status TEXT NOT NULL DEFAULT 'open',
     resolution_notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    resolved_at TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMPTZ,
     FOREIGN KEY(reported_user_id) REFERENCES users(id),
     FOREIGN KEY(reported_accommodation_id) REFERENCES accommodations(id),
     FOREIGN KEY(reporter_id) REFERENCES users(id)
@@ -131,8 +131,8 @@ CREATE TABLE IF NOT EXISTS announcements(
     announcement_type TEXT NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(created_by) REFERENCES users(id)
 )
 ''')
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS homepage_content(
     section_name TEXT NOT NULL UNIQUE,
     content TEXT NOT NULL,
     updated_by INTEGER NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(updated_by) REFERENCES users(id)
 )
 ''')

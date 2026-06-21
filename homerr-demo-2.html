@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homerr — Find Your Perfect Home</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #fff; min-height: 100vh; }
+
+  /* ── NAV ── */
+  .top-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 3rem;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+  .logo span { color: #c9a84c; }
+  .top-nav-links { display: flex; gap: 2rem; align-items: center; }
+  .top-nav-link { color: rgba(255,255,255,0.82); font-size: 14px; cursor: pointer; background: none; border: none; }
+  .top-nav-link:hover { color: #fff; }
+  .top-nav-cta { background: #2a6fcb; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .top-nav-cta:hover { background: #1e5ab5; }
+
+  /* ── HERO ── */
+  #pg-home {
+    position: relative; height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .hero-fullbg {
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1800&q=85') center/cover no-repeat;
+    z-index: 0;
+  }
+  /* gradient only on the LEFT side like the example */
+  .hero-gradient {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(to right, rgba(10,16,30,0.82) 0%, rgba(10,16,30,0.55) 45%, rgba(10,16,30,0.15) 75%, rgba(10,16,30,0.05) 100%);
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    padding: 0 3rem 0 3rem;
+    max-width: 580px;
+    margin-bottom: 2.5rem;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(201,168,76,0.18); border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 20px; padding: 6px 16px; font-size: 13px; color: #c9a84c;
+    margin-bottom: 1.5rem;
+  }
+  .hero-badge-dot { width: 7px; height: 7px; background: #c9a84c; border-radius: 50%; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero h1 {
+    font-size: 58px; font-weight: 700; line-height: 1.05;
+    letter-spacing: -1.5px; margin-bottom: 1.25rem;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+  .hero h1 .gold { color: #c9a84c; display: block; }
+  .hero p { font-size: 16px; color: rgba(255,255,255,0.72); line-height: 1.75; margin-bottom: 2.5rem; max-width: 460px; }
+
+  /* search bar — white floating card like the example */
+  .search-card {
+    background: rgba(255,255,255,0.97); border-radius: 12px;
+    padding: 1.1rem 1.1rem 1.1rem 1.5rem;
+    display: flex; align-items: flex-end; gap: 0;
+    max-width: 660px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+  }
+  .sf { flex: 1; padding: 0 1.25rem 0 0; }
+  .sf:first-child { padding-left: 0; }
+  .sf label { display: block; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 5px; }
+  .sf input, .sf select { width: 100%; border: none; outline: none; font-size: 15px; color: #1a1a1a; background: transparent; }
+  .sf-divider { width: 1px; height: 40px; background: #e0e0e0; flex-shrink: 0; margin-right: 1.25rem; }
+  .search-go {
+    background: #2a6fcb; border: none; border-radius: 8px;
+    width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; margin-left: 8px;
+  }
+  .search-go:hover { background: #1e5ab5; }
+  .search-go svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; }
+
+  /* stats row at very bottom like example */
+  .hero-stats-bar {
+    position: relative; z-index: 2;
+    display: flex; gap: 3.5rem;
+    padding: 2rem 3rem 2.5rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .hstat-val { font-size: 32px; font-weight: 700; color: #fff; }
+  .hstat-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+
+  /* ── SHARED SHELL ── */
+  .shell { display: none; min-height: 100vh; background: #f4f4f1; color: #1a1a1a; }
+  .shell.active { display: block; }
+
+  .shell-nav {
+    background: #0d1117; padding: 1rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .shell-nav .logo { color: #fff; font-size: 18px; }
+  .snr { display: flex; gap: 10px; align-items: center; }
+  .ghost { background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.75); border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  .ghost:hover { background: rgba(255,255,255,0.08); }
+  .gold-txt { color: #c9a84c; font-size: 13px; }
+  .blue-cta { background: #2a6fcb; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .blue-cta:hover { background: #1e5ab5; }
+
+  /* listings */
+  .lb { padding: 2.5rem 3rem; }
+  .lb h2 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .lb-sub { font-size: 14px; color: #888; margin-bottom: 1.75rem; }
+
+  .htabs { display: flex; border-bottom: 2px solid #e8e8e5; margin-bottom: 2rem; }
+  .htab { font-size: 15px; font-weight: 500; padding: 12px 26px; border: none; background: none; cursor: pointer; color: #999; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .htab.active { color: #0d1117; border-bottom-color: #c9a84c; }
+
+  .frow { display: flex; gap: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
+  .fsel { border: 1px solid #ddd; border-radius: 8px; padding: 8px 14px; font-size: 14px; color: #1a1a1a; background: #fff; outline: none; cursor: pointer; }
+
+  .cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 22px; }
+
+  .pcard { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #eaeae7; transition: box-shadow 0.2s, transform 0.2s; }
+  .pcard:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+  .pimg { height: 200px; position: relative; overflow: hidden; }
+  .pimg-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.4s; }
+  .pcard:hover .pimg-bg { transform: scale(1.06); }
+  .ptag { position: absolute; top: 12px; left: 12px; background: #c9a84c; color: #0d1117; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; z-index: 1; letter-spacing: 0.3px; }
+  .ptype { position: absolute; top: 12px; right: 12px; background: rgba(13,17,23,0.65); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 6px; z-index: 1; backdrop-filter: blur(6px); }
+  .pbody { padding: 1.2rem; }
+  .pname { font-size: 15px; font-weight: 700; margin-bottom: 5px; color: #0d1117; }
+  .ploc { font-size: 13px; color: #aaa; margin-bottom: 14px; }
+  .pprice { font-size: 22px; font-weight: 700; color: #0d1117; }
+  .pprice span { font-size: 13px; font-weight: 400; color: #aaa; }
+  .ppills { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .ppill { font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+  .pp-green { background: #e1f5ee; color: #0c6e50; }
+  .pp-gold { background: rgba(201,168,76,0.12); color: #856b1e; }
+  .pp-gray { background: #f0f0ee; color: #666; }
+  .pp-blue { background: #e6f1fb; color: #185fa5; }
+  .pfoot { border-top: 1px solid #f2f2ef; padding: 10px 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+  .pdesc { font-size: 12px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 210px; }
+  .pvbtn { font-size: 13px; color: #2a6fcb; font-weight: 600; background: none; border: none; cursor: pointer; white-space: nowrap; }
+
+  .loading { text-align: center; padding: 4rem; color: #aaa; font-size: 14px; }
+  .empty { text-align: center; padding: 4rem; }
+  .empty h3 { font-size: 16px; color: #666; margin-bottom: 6px; }
+  .empty p { font-size: 14px; color: #aaa; }
+
+  /* forms */
+  .fshell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f4f4f1; }
+  .fbox { background: #fff; border-radius: 16px; border: 1px solid #eaeae7; padding: 2.75rem; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+  .fbox-logo { font-size: 22px; font-weight: 700; margin-bottom: 2rem; color: #0d1117; }
+  .fbox-logo span { color: #c9a84c; }
+  .ftitle { font-size: 22px; font-weight: 700; margin-bottom: 4px; color: #0d1117; }
+  .fsub { font-size: 14px; color: #aaa; margin-bottom: 1.75rem; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; padding: 11px 13px; font-size: 14px; color: #1a1a1a; outline: none; background: #fff; }
+  .field input:focus, .field select:focus { border-color: #2a6fcb; box-shadow: 0 0 0 3px rgba(42,111,203,0.1); }
+  .sbtn { width: 100%; background: #0d1117; color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .sbtn:hover { background: #1a2332; }
+  .falt { text-align: center; margin-top: 14px; font-size: 13px; color: #aaa; }
+  .falt button { background: none; border: none; color: #2a6fcb; font-size: 13px; cursor: pointer; font-weight: 600; }
+  .fmsg { font-size: 13px; padding: 10px 13px; border-radius: 8px; margin-top: 12px; display: none; }
+  .fmsg.err { background: #fef2f2; color: #a32d2d; }
+  .fmsg.ok { background: #e1f5ee; color: #0c6e50; }
+
+  /* admin */
+  .admin-top { background: #0d1117; padding: 1.25rem 3rem; display: flex; align-items: center; justify-content: space-between; }
+  .abody { padding: 2rem 3rem; }
+  .sgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 2rem; }
+  .sbox { background: #fff; border: 1px solid #eaeae7; border-radius: 12px; padding: 1.25rem; }
+  .sbox-label { font-size: 13px; color: #aaa; margin-bottom: 6px; }
+  .sbox-val { font-size: 30px; font-weight: 700; color: #0d1117; }
+  .atabs { display: flex; border-bottom: 2px solid #e8e8e5; margin-bottom: 1.5rem; }
+  .atab { font-size: 14px; font-weight: 500; padding: 10px 20px; border: none; background: none; cursor: pointer; color: #aaa; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .atab.active { color: #0d1117; border-bottom-color: #c9a84c; }
+  .arow { background: #fff; border: 1px solid #eaeae7; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .arow-name { font-size: 14px; font-weight: 700; color: #0d1117; }
+  .arow-meta { font-size: 13px; color: #aaa; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HOME ═══════════ -->
+<div id="pg-home">
+  <div class="top-nav">
+    <div class="logo">Homerr<span>.</span></div>
+    <div class="top-nav-links">
+      <button class="top-nav-link" onclick="showShell('listings')">Properties</button>
+      <button class="top-nav-link" onclick="showShell('listings')">Services</button>
+      <button class="top-nav-link" onclick="showShell('login')">Sign in</button>
+      <button class="top-nav-cta" onclick="showShell('register')">Get Started</button>
+    </div>
+  </div>
+
+  <div class="hero-fullbg"></div>
+  <div class="hero-gradient"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge"><span class="hero-badge-dot"></span> Verified Kenyan Properties</div>
+    <h1>Find Your<br><span class="gold">Dream Home</span></h1>
+    <p>Discover exceptional student and family accommodation across Kenya. Your perfect home awaits with our curated collection of verified properties.</p>
+
+    <div class="search-card">
+      <div class="sf">
+        <label>Location</label>
+        <input type="text" placeholder="City, neighbourhood...">
+      </div>
+      <div class="sf-divider"></div>
+      <div class="sf">
+        <label>Property Type</label>
+        <select>
+          <option>All Types</option>
+          <option>Student Housing</option>
+          <option>Regular Housing</option>
+        </select>
+      </div>
+      <div class="sf-divider"></div>
+      <div class="sf">
+        <label>Price Range</label>
+        <select>
+          <option>Any Price</option>
+          <option>Under KES 10,000</option>
+          <option>KES 10,000–30,000</option>
+          <option>Above KES 30,000</option>
+        </select>
+      </div>
+      <button class="search-go" onclick="showShell('listings')">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="hero-stats-bar">
+    <div><div class="hstat-val" id="hs-total">5+</div><div class="hstat-label">Properties</div></div>
+    <div><div class="hstat-val" id="hs-student">3</div><div class="hstat-label">Student Homes</div></div>
+    <div><div class="hstat-val" id="hs-regular">2</div><div class="hstat-label">Regular Homes</div></div>
+    <div><div class="hstat-val">100%</div><div class="hstat-label">Verified</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ LISTINGS ═══════════ -->
+<div id="pg-listings" class="shell">
+  <div class="shell-nav">
+    <div class="logo" style="color:#fff;">Homerr<span style="color:#c9a84c;">.</span></div>
+    <div class="snr">
+      <span class="gold-txt" id="nav-user-lbl"></span>
+      <button class="ghost" onclick="goHome()">Home</button>
+      <button class="ghost" id="nav-admin-btn" style="display:none; color:#c9a84c; border-color:rgba(201,168,76,0.4);" onclick="showShell('admin')">Admin</button>
+      <button class="blue-cta" id="nav-signin-btn" onclick="showShell('login')">Sign in</button>
+      <button class="ghost" id="nav-signout-btn" style="display:none;" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+  <div class="lb">
+    <h2>Properties</h2>
+    <div class="lb-sub">Browse verified listings across Kenya</div>
+    <div class="htabs">
+      <button class="htab active" id="tab-s" onclick="switchTab('student')">🎓 Student Accommodation</button>
+      <button class="htab" id="tab-r" onclick="switchTab('regular')">🏠 Regular Housing</button>
+    </div>
+    <div class="frow">
+      <select class="fsel" id="fv" onchange="renderListings()"><option value="">All vacancies</option><option value="available">Available</option><option value="full">Full</option></select>
+      <select class="fsel" id="ft" onchange="renderListings()"><option value="">Rent or buy</option><option value="rent">Rent</option><option value="buy">Buy</option></select>
+    </div>
+    <div id="lc" class="cgrid"><div class="loading">Loading properties...</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="pg-login" class="shell">
+  <div class="fshell">
+    <div class="fbox">
+      <div class="fbox-logo">Homerr<span>.</span></div>
+      <div class="ftitle">Welcome back</div>
+      <div class="fsub">Sign in to your account</div>
+      <div class="field"><label>Email</label><input type="email" id="le" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="lp" placeholder="••••••••"></div>
+      <div class="fmsg err" id="lerr"></div>
+      <button class="sbtn" onclick="login()">Sign in</button>
+      <div class="falt">No account? <button onclick="showShell('register')">Register</button></div>
+      <div class="falt" style="margin-top:6px;"><button onclick="goHome()" style="color:#aaa;">← Back to home</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REGISTER ═══════════ -->
+<div id="pg-register" class="shell">
+  <div class="fshell">
+    <div class="fbox">
+      <div class="fbox-logo">Homerr<span>.</span></div>
+      <div class="ftitle">Create account</div>
+      <div class="fsub">Join thousands finding homes across Kenya</div>
+      <div class="field"><label>Full name</label><input type="text" id="rn" placeholder="John Kamau"></div>
+      <div class="field"><label>Email</label><input type="email" id="re" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="rp" placeholder="Create a password"></div>
+      <div class="field"><label>I am a</label>
+        <select id="rr">
+          <option value="user">Student looking for accommodation</option>
+          <option value="tenant">Tenant looking for housing</option>
+          <option value="landlord">Landlord listing a property</option>
+        </select>
+      </div>
+      <div class="fmsg err" id="rerr"></div>
+      <div class="fmsg ok" id="rok"></div>
+      <button class="sbtn" onclick="register()">Create account</button>
+      <div class="falt">Already registered? <button onclick="showShell('login')">Sign in</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ADMIN ═══════════ -->
+<div id="pg-admin" class="shell">
+  <div class="admin-top">
+    <div class="logo" style="color:#fff;">Homerr<span style="color:#c9a84c;">.</span> <span style="color:rgba(255,255,255,0.3); font-size:14px; font-weight:400; margin-left:6px;">Admin</span></div>
+    <div class="snr">
+      <span class="gold-txt" id="au-lbl"></span>
+      <button class="ghost" onclick="showShell('listings')">Listings</button>
+      <button class="ghost" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+  <div class="abody">
+    <div class="sgrid">
+      <div class="sbox"><div class="sbox-label">Student listings</div><div class="sbox-val" id="as">—</div></div>
+      <div class="sbox"><div class="sbox-label">Regular listings</div><div class="sbox-val" id="ar">—</div></div>
+      <div class="sbox"><div class="sbox-label">Total users</div><div class="sbox-val" id="au">—</div></div>
+      <div class="sbox"><div class="sbox-label">Universities</div><div class="sbox-val" id="auni">—</div></div>
+    </div>
+    <div class="atabs">
+      <button class="atab active" onclick="aTab('student',this)">Student listings</button>
+      <button class="atab" onclick="aTab('regular',this)">Regular listings</button>
+      <button class="atab" onclick="aTab('users',this)">Users</button>
+      <button class="atab" onclick="aTab('universities',this)">Universities</button>
+    </div>
+    <div id="ac"><div class="loading">Loading...</div></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+let token = localStorage.getItem('homerr_token');
+let me = JSON.parse(localStorage.getItem('homerr_user') || 'null');
+let allData = { student: [], regular: [] };
+let curTab = 'student';
+
+const IMGS = [
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500&q=75',
+  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500&q=75',
+  'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&q=75',
+  'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=500&q=75',
+  'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=500&q=75',
+];
+
+function showShell(name) {
+  document.getElementById('pg-home').style.display = 'none';
+  ['listings','login','register','admin'].forEach(p => document.getElementById('pg-'+p).classList.remove('active'));
+  document.getElementById('pg-'+name).classList.add('active');
+  if (name==='listings') { updateNav(); loadListings(); }
+  if (name==='admin') loadAdmin();
+}
+
+function goHome() {
+  ['listings','login','register','admin'].forEach(p => document.getElementById('pg-'+p).classList.remove('active'));
+  document.getElementById('pg-home').style.display = 'block';
+}
+
+function updateNav() {
+  const li = !!token;
+  document.getElementById('nav-signin-btn').style.display = li ? 'none' : '';
+  document.getElementById('nav-signout-btn').style.display = li ? '' : 'none';
+  document.getElementById('nav-admin-btn').style.display = (li && me && me.role==='admin') ? '' : 'none';
+  document.getElementById('nav-user-lbl').textContent = li && me ? me.name || '' : '';
+}
+
+function switchTab(t) {
+  curTab = t;
+  document.getElementById('tab-s').classList.toggle('active', t==='student');
+  document.getElementById('tab-r').classList.toggle('active', t==='regular');
+  renderListings();
+}
+
+async function loadListings() {
+  document.getElementById('lc').innerHTML = '<div class="loading">Loading properties...</div>';
+  try {
+    const res = await fetch(API + '/accommodations');
+    const raw = await res.json();
+    allData.student = raw.filter(a => a.is_student_accommodation);
+    allData.regular = raw.filter(a => !a.is_student_accommodation);
+    document.getElementById('hs-total').textContent = raw.length + '+';
+    document.getElementById('hs-student').textContent = allData.student.length;
+    document.getElementById('hs-regular').textContent = allData.regular.length;
+    renderListings();
+  } catch(e) {
+    document.getElementById('lc').innerHTML = '<div class="loading" style="color:#a32d2d;">Could not connect. Make sure Flask is running on port 8000.</div>';
+  }
+}
+
+function renderListings() {
+  const vc = document.getElementById('fv').value;
+  const tc = document.getElementById('ft').value;
+  let data = [...(allData[curTab] || [])];
+  if (vc) data = data.filter(a => a.vacancy_status===vc);
+  if (tc) data = data.filter(a => a.availability_option===tc);
+  if (!data.length) {
+    document.getElementById('lc').innerHTML = '<div class="empty"><h3>No properties found</h3><p>Try adjusting your filters</p></div>';
+    return;
+  }
+  document.getElementById('lc').innerHTML = data.map((a,i) => `
+    <div class="pcard">
+      <div class="pimg">
+        <div class="pimg-bg" style="background-image:url('${IMGS[i%IMGS.length]}')"></div>
+        <span class="ptag">${a.availability_option.toUpperCase()}</span>
+        <span class="ptype">${a.is_student_accommodation ? '🎓 Student' : '🏠 Regular'}</span>
+      </div>
+      <div class="pbody">
+        <div class="pname">${a.name}</div>
+        <div class="ploc">📍 ${a.location}${a.distance_km ? ' · ' + a.distance_km + ' km from campus' : ''}</div>
+        <div class="pprice">KES ${Number(a.price).toLocaleString()} <span>/ month</span></div>
+        <div class="ppills">
+          <span class="ppill ${a.vacancy_status==='available'?'pp-green':'pp-gray'}">${a.vacancy_status}</span>
+          ${a.units_available ? '<span class="ppill pp-blue">'+a.units_available+' units</span>' : ''}
+          ${a.is_student_accommodation ? '<span class="ppill pp-gold">Near campus</span>' : ''}
+        </div>
+      </div>
+      <div class="pfoot">
+        <span class="pdesc">${(a.description||'').substring(0,55)}${a.description&&a.description.length>55?'…':''}</span>
+        <button class="pvbtn">View →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function login() {
+  const email = document.getElementById('le').value;
+  const password = document.getElementById('lp').value;
+  const err = document.getElementById('lerr');
+  err.style.display = 'none';
+  try {
+    const res = await fetch(API+'/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password})});
+    const d = await res.json();
+    if (!res.ok) { err.textContent = d.error||'Login failed'; err.style.display='block'; return; }
+    token = d.access_token; me = d.user;
+    localStorage.setItem('homerr_token', token);
+    localStorage.setItem('homerr_user', JSON.stringify(me));
+    showShell(me&&me.role==='admin' ? 'admin' : 'listings');
+  } catch(e) { err.textContent='Could not connect. Is Flask running?'; err.style.display='block'; }
+}
+
+async function register() {
+  const name=document.getElementById('rn').value, email=document.getElementById('re').value,
+        password=document.getElementById('rp').value, role=document.getElementById('rr').value;
+  const err=document.getElementById('rerr'), ok=document.getElementById('rok');
+  err.style.display='none'; ok.style.display='none';
+  try {
+    const res = await fetch(API+'/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,password,role})});
+    const d = await res.json();
+    if (!res.ok) { err.textContent=d.error||'Registration failed'; err.style.display='block'; return; }
+    ok.textContent='Account created! Verify your email then sign in.'; ok.style.display='block';
+  } catch(e) { err.textContent='Could not connect.'; err.style.display='block'; }
+}
+
+async function loadAdmin() {
+  if (!token) { showShell('login'); return; }
+  const h = {'Authorization':'Bearer '+token};
+  const lbl = document.getElementById('au-lbl');
+  if (lbl && me) lbl.textContent = me.name || me.email || '';
+  try {
+    const [all, users, unis] = await Promise.all([
+      fetch(API+'/accommodations',{headers:h}).then(r=>r.json()),
+      fetch(API+'/users',{headers:h}).then(r=>r.json()),
+      fetch(API+'/universities',{headers:h}).then(r=>r.json()),
+    ]);
+    const sl = Array.isArray(all)?all.filter(a=>a.is_student_accommodation):[];
+    const rl = Array.isArray(all)?all.filter(a=>!a.is_student_accommodation):[];
+    document.getElementById('as').textContent = sl.length;
+    document.getElementById('ar').textContent = rl.length;
+    document.getElementById('au').textContent = Array.isArray(users)?users.length:'—';
+    document.getElementById('auni').textContent = Array.isArray(unis)?unis.length:'—';
+    renderAdminRows(sl);
+  } catch(e) { document.getElementById('ac').innerHTML='<div class="loading" style="color:#a32d2d">Could not load.</div>'; }
+}
+
+function renderAdminRows(data) {
+  if (!Array.isArray(data)||!data.length) { document.getElementById('ac').innerHTML='<div class="loading">No items found.</div>'; return; }
+  document.getElementById('ac').innerHTML = data.map(a=>`
+    <div class="arow">
+      <div>
+        <div class="arow-name">${a.name||a.email||'—'}</div>
+        <div class="arow-meta">${a.location||a.email||''} ${a.price?'· KES '+Number(a.price).toLocaleString():''}</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        ${a.approval_status?'<span class="ppill pp-green">'+a.approval_status+'</span>':''}
+        ${a.vacancy_status?'<span class="ppill '+(a.vacancy_status==='available'?'pp-gold':'pp-gray')+'">'+a.vacancy_status+'</span>':''}
+        ${a.role?'<span class="ppill pp-blue">'+a.role+'</span>':''}
+        ${a.email_verified!==undefined?'<span class="ppill '+(a.email_verified?'pp-green':'pp-gray')+'">'+(a.email_verified?'verified':'unverified')+'</span>':''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function aTab(tab, el) {
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const h={'Authorization':'Bearer '+token};
+  document.getElementById('ac').innerHTML='<div class="loading">Loading...</div>';
+  try {
+    if (tab==='student'||tab==='regular') {
+      const d = await fetch(API+'/accommodations',{headers:h}).then(r=>r.json());
+      renderAdminRows(Array.isArray(d)?d.filter(a=>tab==='student'?a.is_student_accommodation:!a.is_student_accommodation):[]);
+    } else {
+      const d = await fetch(API+'/'+tab,{headers:h}).then(r=>r.json());
+      renderAdminRows(Array.isArray(d)?d:[]);
+    }
+  } catch(e) { document.getElementById('ac').innerHTML='<div class="loading" style="color:#a32d2d">Error.</div>'; }
+}
+
+function logout() {
+  token=null; me=null;
+  localStorage.removeItem('homerr_token');
+  localStorage.removeItem('homerr_user');
+  goHome();
+}
+</script>
+</body>
+</html>

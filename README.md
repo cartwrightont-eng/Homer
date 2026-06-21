@@ -105,7 +105,7 @@ The server will run on `http://localhost:5000`
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DATABASE_URL` | postgresql://user:password@localhost:5432/university_app | PostgreSQL connection URL |
-| `JWT_SECRET_KEY` | change-this-secret | JWT signing secret |
+| `JWT_SECRET_KEY` | (required in production) | JWT signing secret |
 | `JWT_EXPIRES_HOURS` | 24 | JWT token expiry in hours |
 | `EMAIL_TOKEN_EXPIRES_HOURS` | 24 | Email verification token expiry |
 | `PASSWORD_RESET_EXPIRES_HOURS` | 2 | Password reset token expiry |

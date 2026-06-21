@@ -1,7 +1,9 @@
 from functools import wraps
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+from werkzeug.exceptions import BadRequest, HTTPException
 
 from config import JWT_ACCESS_TOKEN_EXPIRES, JWT_SECRET_KEY
 from init_db import init_db
@@ -54,6 +56,7 @@ from models import (
 )
 
 app = Flask(__name__)
+CORS(app)
 app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = JWT_ACCESS_TOKEN_EXPIRES
 jwt = JWTManager(app)
@@ -63,7 +66,12 @@ jwt = JWTManager(app)
 
 def get_json_data(required_fields=None):
     """Get and validate JSON request data. Returns (data, error_response) tuple."""
-    data = request.get_json(silent=True) or {}
+    try:
+        data = request.get_json(silent=False) or {}
+    except BadRequest:
+        return None, error_response('Invalid JSON payload', 400)
+    if request.data and not data:
+        return None, error_response('Invalid JSON payload', 400)
     if required_fields:
         missing = [f for f in required_fields if f not in data]
         if missing:
@@ -110,6 +118,14 @@ def role_required(*allowed_roles):
             return fn(*args, **kwargs)
         return wrapper
     return decorator
+
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    if isinstance(error, HTTPException):
+        return jsonify({'error': error.description}), error.code
+    app.logger.exception('Unhandled exception')
+    return error_response('Internal server error', 500)
 
 
 # ==== AUTHENTICATION ====
@@ -189,7 +205,7 @@ def login():
     user = authenticate_user(data['email'], data['password'])
     if not user:
         return error_response('invalid credentials or email not verified', 401)
-    token = create_access_token(identity=user)
+    token = create_access_token(identity={'id': user['id'], 'role': user['role']})
     return jsonify({'access_token': token, 'user': user})
 
 
@@ -222,9 +238,20 @@ def get_user(user_id):
     return jsonify(user)
 
 
+@app.route('/profile', methods=['GET'])
+@jwt_required()
+def profile():
+    return jsonify(get_jwt_identity())
+
+
 @app.route('/universities', methods=['GET'])
 def list_universities():
     return jsonify(get_universities())
+
+
+@app.route('/universities/<int:university_id>/accommodations', methods=['GET'])
+def get_university_accommodations(university_id):
+    return jsonify(get_accommodations_by_university(university_id))
 
 
 @app.route('/universities', methods=['POST'])
