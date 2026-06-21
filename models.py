@@ -5,7 +5,7 @@ import psycopg2
 import psycopg2.extras
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from config import EMAIL_TOKEN_EXPIRES_HOURS, PASSWORD_RESET_EXPIRES_HOURS
+from config import EMAIL_TOKEN_EXPIRES_HOURS, PASSWORD_RESET_EXPIRES_HOURS, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from database import db_cursor
 
 
@@ -31,6 +31,28 @@ def _fetchall(query, params=None):
     with db_cursor(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cursor):
         cursor.execute(query, params or ())
         return cursor.fetchall()
+
+
+def _get_total_count(table, where_clause=None, params=None):
+    """Get total count for pagination metadata."""
+    query = f"SELECT COUNT(*) AS total FROM {table}"
+    if where_clause:
+        query += f" WHERE {where_clause}"
+    result = _fetchone(query, params)
+    return result['total'] if result else 0
+
+
+def paginate_results(items, page, page_size, total):
+    """Format paginated results with metadata."""
+    return {
+        'items': items,
+        'pagination': {
+            'page': page,
+            'page_size': page_size,
+            'total': total,
+            'total_pages': (total + page_size - 1) // page_size,
+        }
+    }
 
 
 def create_user(name, email, password, role='user'):
@@ -63,10 +85,20 @@ def get_user_by_id(user_id):
     )
 
 
-def get_users():
-    return _fetchall(
-        "SELECT id, name, email, role, email_verified FROM users"
+def get_users(page=1, page_size=DEFAULT_PAGE_SIZE):
+    """Get users with pagination."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
+    offset = (page - 1) * page_size
+    items = _fetchall(
+        "SELECT id, name, email, role, email_verified FROM users ORDER BY id DESC LIMIT %s OFFSET %s",
+        (page_size, offset)
     )
+    total = _get_total_count('users')
+    return paginate_results(items, page, page_size, total)
 
 
 def authenticate_user(email, password):
@@ -95,8 +127,20 @@ def add_university(name, description, location, created_by=None):
         )
 
 
-def get_universities():
-    return _fetchall("SELECT * FROM universities")
+def get_universities(page=1, page_size=DEFAULT_PAGE_SIZE):
+    """Get universities with pagination."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
+    offset = (page - 1) * page_size
+    items = _fetchall(
+        "SELECT * FROM universities ORDER BY id DESC LIMIT %s OFFSET %s",
+        (page_size, offset)
+    )
+    total = _get_total_count('universities')
+    return paginate_results(items, page, page_size, total)
 
 
 def add_accommodation(
@@ -155,11 +199,20 @@ def add_accommodation(
         return cursor.fetchone()['id']
 
 
-def get_accommodations_by_university(university_id):
-    return _fetchall(
-        "SELECT * FROM accommodations WHERE university_id=%s",
-        (university_id,),
+def get_accommodations_by_university(university_id, page=1, page_size=DEFAULT_PAGE_SIZE):
+    """Get accommodations by university with pagination."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
+    offset = (page - 1) * page_size
+    items = _fetchall(
+        "SELECT * FROM accommodations WHERE university_id=%s ORDER BY id DESC LIMIT %s OFFSET %s",
+        (university_id, page_size, offset)
     )
+    total = _get_total_count('accommodations', 'university_id=%s', (university_id,))
+    return paginate_results(items, page, page_size, total)
 
 
 def _generate_token():
@@ -287,17 +340,34 @@ def get_accommodation_videos(accommodation_id):
     )
 
 
-def get_accommodations_by_landlord(landlord_id):
-    return _fetchall(
-        "SELECT * FROM accommodations WHERE owner_id=%s",
-        (landlord_id,),
+def get_accommodations_by_landlord(landlord_id, page=1, page_size=DEFAULT_PAGE_SIZE):
+    """Get accommodations by landlord with pagination."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
+    offset = (page - 1) * page_size
+    items = _fetchall(
+        "SELECT * FROM accommodations WHERE owner_id=%s ORDER BY id DESC LIMIT %s OFFSET %s",
+        (landlord_id, page_size, offset)
     )
+    total = _get_total_count('accommodations', 'owner_id=%s', (landlord_id,))
+    return paginate_results(items, page, page_size, total)
 
 
-def get_accommodations(university_id=None, availability_option=None, is_student_accommodation=None, vacancy_status=None):
+def get_accommodations(page=1, page_size=DEFAULT_PAGE_SIZE, university_id=None, availability_option=None, is_student_accommodation=None, vacancy_status=None):
+    """Get accommodations with pagination and filters."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
     query = "SELECT * FROM accommodations"
+    count_query = "SELECT COUNT(*) AS total FROM accommodations"
     params = []
     conditions = []
+    
     if university_id is not None:
         conditions.append("university_id=%s")
         params.append(university_id)
@@ -310,9 +380,23 @@ def get_accommodations(university_id=None, availability_option=None, is_student_
     if is_student_accommodation is not None:
         conditions.append("is_student_accommodation=%s")
         params.append(is_student_accommodation)
+    
     if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    return _fetchall(query, tuple(params))
+        where_clause = " WHERE " + " AND ".join(conditions)
+        query += where_clause
+        count_query += where_clause
+    
+    # Get total count
+    count_result = _fetchone(count_query, tuple(params))
+    total = count_result['total'] if count_result else 0
+    
+    # Get paginated results
+    offset = (page - 1) * page_size
+    query += " ORDER BY id DESC LIMIT %s OFFSET %s"
+    params_with_pagination = params + [page_size, offset]
+    
+    items = _fetchall(query, tuple(params_with_pagination))
+    return paginate_results(items, page, page_size, total)
 
 
 def _update_record(table, record_id, fields):
@@ -351,13 +435,29 @@ def edit_listing(listing_id, **data):
     return update_accommodation(listing_id, **data)
 
 
-def get_all_listings(approval_status=None):
+def get_all_listings(page=1, page_size=DEFAULT_PAGE_SIZE, approval_status=None):
+    """Get all listings with pagination and optional status filter."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
+    offset = (page - 1) * page_size
+    
     if approval_status:
-        return _fetchall(
-            "SELECT * FROM accommodations WHERE approval_status=%s",
-            (approval_status,),
+        items = _fetchall(
+            "SELECT * FROM accommodations WHERE approval_status=%s ORDER BY id DESC LIMIT %s OFFSET %s",
+            (approval_status, page_size, offset)
         )
-    return _fetchall("SELECT * FROM accommodations")
+        total = _get_total_count('accommodations', 'approval_status=%s', (approval_status,))
+    else:
+        items = _fetchall(
+            "SELECT * FROM accommodations ORDER BY id DESC LIMIT %s OFFSET %s",
+            (page_size, offset)
+        )
+        total = _get_total_count('accommodations')
+    
+    return paginate_results(items, page, page_size, total)
 
 
 def approve_listing(listing_id):
@@ -494,10 +594,29 @@ def create_report(report_type, reason, description, reporter_id, reported_user_i
         return cursor.fetchone()[0]
 
 
-def get_reports(status=None):
+def get_reports(page=1, page_size=DEFAULT_PAGE_SIZE, status=None):
+    """Get reports with pagination and optional status filter."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
+    offset = (page - 1) * page_size
+    
     if status:
-        return _fetchall("SELECT * FROM reports WHERE status=%s", (status,))
-    return _fetchall("SELECT * FROM reports")
+        items = _fetchall(
+            "SELECT * FROM reports WHERE status=%s ORDER BY id DESC LIMIT %s OFFSET %s",
+            (status, page_size, offset)
+        )
+        total = _get_total_count('reports', 'status=%s', (status,))
+    else:
+        items = _fetchall(
+            "SELECT * FROM reports ORDER BY id DESC LIMIT %s OFFSET %s",
+            (page_size, offset)
+        )
+        total = _get_total_count('reports')
+    
+    return paginate_results(items, page, page_size, total)
 
 
 def get_report(report_id):
@@ -508,17 +627,32 @@ def resolve_report(report_id, resolution_notes):
     with db_cursor(commit=True) as (conn, cursor):
         cursor.execute(
             "UPDATE reports SET status='resolved', resolution_notes=%s, resolved_at=%s WHERE id=%s",
-            (resolution_notes, _now(), report_id),
+            (resolution_notes, _format_datetime(_now()), report_id),
         )
     return True
 
 
-def search_users(query):
+def search_users(query, page=1, page_size=DEFAULT_PAGE_SIZE):
+    """Search users with pagination."""
+    if page_size > MAX_PAGE_SIZE:
+        page_size = MAX_PAGE_SIZE
+    if page < 1:
+        page = 1
+    
     like_query = f"%{query}%"
-    return _fetchall(
-        "SELECT id, name, email, role, email_verified, is_suspended, is_landlord_verified FROM users WHERE name LIKE %s OR email LIKE %s",
-        (like_query, like_query),
+    offset = (page - 1) * page_size
+    
+    items = _fetchall(
+        "SELECT id, name, email, role, email_verified, is_suspended, is_landlord_verified FROM users WHERE name LIKE %s OR email LIKE %s ORDER BY id DESC LIMIT %s OFFSET %s",
+        (like_query, like_query, page_size, offset)
     )
+    total = _fetchone(
+        "SELECT COUNT(*) AS total FROM users WHERE name LIKE %s OR email LIKE %s",
+        (like_query, like_query)
+    )
+    total = total['total'] if total else 0
+    
+    return paginate_results(items, page, page_size, total)
 
 
 def suspend_user(user_id):
@@ -534,9 +668,21 @@ def reactivate_user(user_id):
 
 
 def delete_user(user_id):
+    """Permanently delete a user account and associated data."""
     with db_cursor(commit=True) as (conn, cursor):
-        cursor.execute("UPDATE users SET is_suspended=TRUE WHERE id=%s", (user_id,))
-    return True
+        try:
+            # Delete associated accommodations
+            cursor.execute("DELETE FROM accommodations WHERE owner_id=%s", (user_id,))
+            # Delete associated reports
+            cursor.execute("DELETE FROM reports WHERE reporter_id=%s OR reported_user_id=%s", (user_id, user_id))
+            # Delete user tokens
+            cursor.execute("DELETE FROM user_tokens WHERE user_id=%s", (user_id,))
+            # Finally, delete the user
+            cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
+            return True
+        except Exception as e:
+            conn.rollback()
+            raise
 
 
 def verify_landlord(user_id):
@@ -552,34 +698,29 @@ def unverify_landlord(user_id):
 
 
 def get_analytics_dashboard():
+    """Get analytics dashboard - optimized with single query."""
     with db_cursor(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cursor):
-        cursor.execute("SELECT COUNT(*) AS total_users FROM users")
-        total_users = cursor.fetchone()['total_users']
-        cursor.execute("SELECT COUNT(*) AS total_landlords FROM users WHERE role='landlord'")
-        total_landlords = cursor.fetchone()['total_landlords']
-        cursor.execute("SELECT COUNT(*) AS total_admins FROM users WHERE role='admin'")
-        total_admins = cursor.fetchone()['total_admins']
-        cursor.execute("SELECT COUNT(*) AS total_accommodations FROM accommodations")
-        total_accommodations = cursor.fetchone()['total_accommodations']
-        cursor.execute("SELECT COUNT(*) AS approved_listings FROM accommodations WHERE approval_status='approved'")
-        approved_listings = cursor.fetchone()['approved_listings']
-        cursor.execute("SELECT COUNT(*) AS pending_listings FROM accommodations WHERE approval_status='pending'")
-        pending_listings = cursor.fetchone()['pending_listings']
-        cursor.execute("SELECT COUNT(*) AS suspicious_listings FROM accommodations WHERE is_suspicious=TRUE")
-        suspicious_listings = cursor.fetchone()['suspicious_listings']
-        cursor.execute("SELECT COUNT(*) AS open_reports FROM reports WHERE status='open'")
-        open_reports = cursor.fetchone()['open_reports']
-        cursor.execute("SELECT COUNT(*) AS resolved_reports FROM reports WHERE status='resolved'")
-        resolved_reports = cursor.fetchone()['resolved_reports']
+        cursor.execute("""
+            SELECT
+                (SELECT COUNT(*) FROM users) AS total_users,
+                (SELECT COUNT(*) FROM users WHERE role='landlord') AS total_landlords,
+                (SELECT COUNT(*) FROM users WHERE role='admin') AS total_admins,
+                (SELECT COUNT(*) FROM accommodations) AS total_accommodations,
+                (SELECT COUNT(*) FROM accommodations WHERE approval_status='approved') AS approved_listings,
+                (SELECT COUNT(*) FROM accommodations WHERE approval_status='pending') AS pending_listings,
+                (SELECT COUNT(*) FROM accommodations WHERE is_suspicious=TRUE) AS suspicious_listings,
+                (SELECT COUNT(*) FROM reports WHERE status='open') AS open_reports,
+                (SELECT COUNT(*) FROM reports WHERE status='resolved') AS resolved_reports
+        """)
+        result = cursor.fetchone()
         return {
-            'total_users': total_users,
-            'total_landlords': total_landlords,
-            'total_admins': total_admins,
-            'total_accommodations': total_accommodations,
-            'approved_listings': approved_listings,
-            'pending_listings': pending_listings,
-            'suspicious_listings': suspicious_listings,
-            'open_reports': open_reports,
-            'resolved_reports': resolved_reports,
+            'total_users': result['total_users'],
+            'total_landlords': result['total_landlords'],
+            'total_admins': result['total_admins'],
+            'total_accommodations': result['total_accommodations'],
+            'approved_listings': result['approved_listings'],
+            'pending_listings': result['pending_listings'],
+            'suspicious_listings': result['suspicious_listings'],
+            'open_reports': result['open_reports'],
+            'resolved_reports': result['resolved_reports'],
         }
-
