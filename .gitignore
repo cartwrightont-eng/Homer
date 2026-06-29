@@ -1,9 +1,26 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+.env
 .venv/
 venv/
-.env
-*.db
-app.db
+
+# Database
+*.sqlite3
+
+# Scratch/fix scripts (don't commit these)
+fix_*.py
+patch_*.py
+check_db.py
+create_missing.py
+demo_seed.py
+inspect_schema.py
+write_dashboard.py
+app.py.bak
+
+# Old folders
+"homerr front end v1"/
+
+# OS
 .DS_Store
-.vscode/

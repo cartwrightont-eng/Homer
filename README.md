@@ -1,6 +1,6 @@
 # University Accommodation Finder
 
-A multi-role accommodation management system for university students, landlords, and schools.
+A multi-role accommodation management system for university students,normal tenants, landlords, and schools.
 
 ## Features
 
@@ -51,7 +51,7 @@ $env:DATABASE_URL="postgresql://user:password@localhost:5432/university_app"
 $env:JWT_SECRET_KEY="your-jwt-secret"
 $env:JWT_EXPIRES_HOURS="24"
 $env:EMAIL_TOKEN_EXPIRES_HOURS="24"
-$env:PASSWORD_RESET_EXPIRES_HOURS="2"
+$env:PASSWORD_RESET_EXPIRES_MINUTES="45"
 ```
 
 ### 5. Initialize the database
@@ -72,7 +72,7 @@ python create_admin.py
 python app.py
 ```
 
-The server will run on `http://localhost:5000`
+The server will run on `http://localhost:8000`
 
 ## API Endpoints
 

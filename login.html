@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — Homerr</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+
+<div class="mesh-bg" aria-hidden="true">
+  <div class="mesh-orb mesh-orb--1"></div>
+  <div class="mesh-orb mesh-orb--2"></div>
+  <div class="mesh-orb mesh-orb--3"></div>
+</div>
+
+<div class="auth-page">
+
+  <!-- Visual side -->
+  <div class="auth-visual">
+    <div class="auth-visual__content">
+      <div class="auth-visual__quote">
+        "Found my Kilimani apartment in three days. No agent, no stress."
+      </div>
+      <div class="auth-visual__author">— Jane Wanjiru, tenant since 2023</div>
+    </div>
+  </div>
+
+  <!-- Form side -->
+  <div class="auth-form-side">
+    <div class="auth-form-inner">
+
+      <div class="auth-logo">
+        <a href="index.html" style="display:flex;align-items:baseline;">
+          <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+        </a>
+      </div>
+
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">
+        No account yet? <a href="register.html">Create one free</a>
+      </p>
+
+      <form id="login-form" novalidate>
+
+        <div class="form-field">
+          <label for="email">Email address</label>
+          <input class="form-input" id="email" type="email"
+            placeholder="jane@example.com" autocomplete="email" required />
+        </div>
+
+        <div class="form-field">
+          <label for="password" style="display:flex;justify-content:space-between;align-items:center;">
+            Password
+            <a href="#" id="forgot-link" style="font-size:0.8rem;color:var(--color-sage-mid);font-weight:400;">Forgot password?</a>
+          </label>
+          <div style="position:relative;">
+            <input class="form-input" id="password" type="password"
+              placeholder="••••••••" autocomplete="current-password" required style="padding-right:44px;" />
+            <button type="button" id="toggle-pw" aria-label="Show password"
+              style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--color-muted);cursor:pointer;background:none;border:none;padding:0;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <input type="checkbox" id="remember" style="accent-color:var(--color-sage-deep);width:16px;height:16px;" />
+          <label for="remember" style="font-size:0.85rem;color:var(--color-muted);cursor:pointer;">Keep me signed in</label>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--lg" id="login-btn"
+          style="width:100%;justify-content:center;margin-top:16px;">
+          Sign in
+        </button>
+
+        <div id="login-feedback"></div>
+
+      </form>
+
+      <!-- Forgot password panel (hidden by default) -->
+      <div id="forgot-panel" style="display:none;margin-top:24px;padding:20px;background:var(--color-sage-ghost);border:1px solid var(--color-sage-tint);border-radius:var(--radius-md);">
+        <div style="font-size:0.88rem;font-weight:600;color:var(--color-foreground);margin-bottom:10px;">Reset your password</div>
+        <div class="form-field" style="margin-bottom:12px;">
+          <input class="form-input" id="reset-email" type="email" placeholder="Your email address" />
+        </div>
+        <button class="btn btn--primary btn--sm" id="reset-btn" style="width:100%;justify-content:center;">Send reset link</button>
+        <div id="reset-feedback"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="static/js/api.js"></script>
+<script>
+(() => {
+  // Redirect if already logged in
+  redirectIfLoggedIn('index.html');
+
+  const form        = document.getElementById('login-form');
+  const loginBtn    = document.getElementById('login-btn');
+  const feedbackEl  = document.getElementById('login-feedback');
+  const forgotLink  = document.getElementById('forgot-link');
+  const forgotPanel = document.getElementById('forgot-panel');
+  const resetBtn    = document.getElementById('reset-btn');
+  const resetFeedback = document.getElementById('reset-feedback');
+
+  // Password toggle
+  document.getElementById('toggle-pw').addEventListener('click', () => {
+    const pw = document.getElementById('password');
+    pw.type  = pw.type === 'password' ? 'text' : 'password';
+  });
+
+  // Forgot password toggle
+  forgotLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    forgotPanel.style.display = forgotPanel.style.display === 'none' ? 'block' : 'none';
+    document.getElementById('reset-email').value = document.getElementById('email').value;
+  });
+
+  // Password reset request
+  resetBtn.addEventListener('click', async () => {
+    const email = document.getElementById('reset-email').value.trim();
+    if (!email) { showError(resetFeedback, 'Enter your email address.'); return; }
+    setLoading(resetBtn, true, 'Send reset link');
+    try {
+      const res = await API.requestPasswordReset(email);
+      showSuccess(resetFeedback, res.message || 'Reset link sent. Check your inbox.');
+    } catch (err) {
+      showError(resetFeedback, err.message);
+    } finally {
+      setLoading(resetBtn, false, 'Send reset link');
+    }
+  });
+
+  // Login submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    feedbackEl.innerHTML = '';
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      showError(feedbackEl, 'Please fill in both fields.');
+      return;
+    }
+
+    setLoading(loginBtn, true, 'Sign in');
+    try {
+      const res = await API.login(email, password);
+      Auth.setSession(res.access_token, res.user);
+
+      // Role-based redirect
+      const role = res.user?.role;
+      if (role === 'admin')    window.location.href = 'landlord-dashboard.html';
+      else if (role === 'landlord') window.location.href = 'landlord-dashboard.html';
+      else window.location.href = 'listings.html';
+
+    } catch (err) {
+      setLoading(loginBtn, false, 'Sign in');
+      const msg = err.message.includes('not verified')
+        ? 'Please verify your email before signing in. Check your inbox.'
+        : err.message || 'Invalid email or password.';
+      showError(feedbackEl, msg);
+    }
+  });
+})();
+</script>
+</body>
+</html>

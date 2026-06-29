@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2 import pool
+from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
 
 from config import DATABASE_URL
@@ -24,15 +25,27 @@ def return_connection(conn):
 
 
 @contextmanager
-def db_cursor(cursor_factory=None, commit=False):
+def db_cursor(cursor_factory=RealDictCursor, commit=False):
     conn = get_connection()
-    cursor = conn.cursor(cursor_factory=cursor_factory) if cursor_factory else conn.cursor()
+    try:
+        conn.cursor().execute('SELECT 1')
+    except Exception:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        _get_pool().putconn(conn)
+        conn = _get_pool().getconn()
+    cursor = conn.cursor(cursor_factory=cursor_factory)
     try:
         yield conn, cursor
         if commit:
             conn.commit()
     except Exception:
-        conn.rollback()
+        try:
+            conn.rollback()
+        except Exception:
+            pass
         raise
     finally:
         try:

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse Rentals — Homerr</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+
+<div class="mesh-bg" aria-hidden="true">
+  <div class="mesh-orb mesh-orb--1"></div>
+  <div class="mesh-orb mesh-orb--2"></div>
+  <div class="mesh-orb mesh-orb--3"></div>
+</div>
+
+<nav class="nav glass-nav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="listings.html" class="nav__link" style="color:var(--color-sage-deep);">Browse</a></li>
+      <li><a href="index.html#features" class="nav__link">How it works</a></li>
+    </ul>
+    <div class="nav__actions">
+      <a href="login.html" class="btn btn--ghost">Sign in</a>
+      <a href="register.html" class="btn btn--primary">List a property</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="listings-page">
+    <div class="container">
+
+      <div class="listings-page__header reveal">
+        <h1 class="listings-page__title">Rentals in Nairobi</h1>
+        <p class="listings-page__sub" id="listings-count-header">Loading properties…</p>
+      </div>
+
+      <div class="listings-layout">
+
+        <!-- FILTERS SIDEBAR -->
+        <aside class="filters-sidebar reveal">
+          <div class="filters-title">Filters</div>
+
+          <div class="filter-group">
+            <span class="filter-group__label">Property type</span>
+            <div class="filter-chips" id="filter-type">
+              <button class="filter-chip active" data-value="">Any</button>
+              <button class="filter-chip" data-value="false">Standard</button>
+              <button class="filter-chip" data-value="true">Student</button>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-group__label">Availability</span>
+            <div class="filter-chips" id="filter-availability">
+              <button class="filter-chip active" data-value="">Any</button>
+              <button class="filter-chip" data-value="rent">Rent</button>
+              <button class="filter-chip" data-value="buy">Buy</button>
+              <button class="filter-chip" data-value="both">Both</button>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-group__label">Vacancy</span>
+            <div class="filter-chips" id="filter-vacancy">
+              <button class="filter-chip active" data-value="">Any</button>
+              <button class="filter-chip" data-value="vacant">Available</button>
+              <button class="filter-chip" data-value="occupied">Occupied</button>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-group__label">Max price (KES/mo)</span>
+            <input type="range" class="range-input" id="max-price"
+              min="5000" max="500000" step="5000" value="500000" />
+            <div class="filter-range-labels">
+              <span>KES 5,000</span>
+              <span id="max-price-display">Any price</span>
+            </div>
+          </div>
+
+          <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--color-border);display:flex;gap:10px;">
+            <button class="btn btn--ghost btn--sm" id="filter-reset" style="flex:1;">Reset</button>
+            <button class="btn btn--primary btn--sm" id="filter-apply" style="flex:1;">Apply</button>
+          </div>
+        </aside>
+
+        <!-- LISTINGS MAIN -->
+        <div>
+          <div class="listings-toolbar reveal">
+            <div class="search-input-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input type="text" class="search-input" id="listings-search"
+                placeholder="Search by name or location…" />
+            </div>
+            <select class="sort-select" id="sort-select">
+              <option value="newest">Most recent</option>
+              <option value="price_asc">Price: low to high</option>
+              <option value="price_desc">Price: high to low</option>
+            </select>
+          </div>
+
+          <p class="listings-count reveal" id="listings-count"></p>
+
+          <!-- Grid — skeletons shown immediately, replaced by real cards -->
+          <div class="listings-grid" id="listings-grid"></div>
+
+          <div id="listings-error" style="display:none;text-align:center;padding:60px 20px;">
+            <div style="font-size:2rem;margin-bottom:12px;">🏠</div>
+            <div style="font-weight:600;color:var(--color-foreground);margin-bottom:6px;">No properties found</div>
+            <div style="font-size:0.88rem;color:var(--color-muted);">Try adjusting your filters or search term.</div>
+          </div>
+
+          <!-- Pagination -->
+          <div id="pagination" style="display:flex;justify-content:center;gap:8px;margin-top:48px;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+        <p class="footer__tagline">Premium rentals, simplified.</p>
+      </div>
+      <div class="footer__links">
+        <div class="footer__col"><h4>Platform</h4><ul><li><a href="listings.html">Browse listings</a></li><li><a href="register.html">Post a property</a></li></ul></div>
+        <div class="footer__col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+      </div>
+    </div>
+    <div class="footer__bottom"><p>&copy; 2024 Homerr. Built for Nairobi.</p></div>
+  </div>
+</footer>
+
+<script src="static/js/api.js"></script>
+<script src="static/js/main.js"></script>
+<script>
+(() => {
+  initNav();
+
+  // --- State ---
+  let allListings  = [];
+  let filtered     = [];
+  const PAGE_SIZE  = 9;
+  let currentPage  = 1;
+
+  const grid       = document.getElementById('listings-grid');
+  const errEl      = document.getElementById('listings-error');
+  const countEl    = document.getElementById('listings-count');
+  const headerCount= document.getElementById('listings-count-header');
+  const searchEl   = document.getElementById('listings-search');
+  const sortEl     = document.getElementById('sort-select');
+  const priceRange = document.getElementById('max-price');
+  const priceDisplay = document.getElementById('max-price-display');
+
+  // Read URL params on load
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('q')) searchEl.value = params.get('q');
+
+  // --- Load all listings ---
+  async function loadListings() {
+    renderSkeletons(grid, 6);
+    try {
+      allListings = await API.getListings();
+      applyFilters();
+    } catch (err) {
+      grid.innerHTML = '';
+      errEl.style.display = 'block';
+      errEl.querySelector('div:nth-child(2)').textContent = 'Could not load listings. Check your connection.';
+    }
+  }
+
+  // --- Filter + sort in-browser (avoids N API calls per filter click) ---
+  function applyFilters() {
+    const search    = searchEl.value.trim().toLowerCase();
+    const maxPrice  = parseInt(priceRange.value);
+    const typeVal   = document.querySelector('#filter-type .filter-chip.active')?.dataset.value;
+    const availVal  = document.querySelector('#filter-availability .filter-chip.active')?.dataset.value;
+    const vacancyVal= document.querySelector('#filter-vacancy .filter-chip.active')?.dataset.value;
+
+    filtered = allListings.filter(p => {
+      if (search && !p.name.toLowerCase().includes(search) && !p.location.toLowerCase().includes(search)) return false;
+      if (maxPrice < 500000 && p.price > maxPrice) return false;
+      if (typeVal !== '' && typeVal !== undefined && String(p.is_student_accommodation) !== typeVal) return false;
+      if (availVal && p.availability_option !== availVal) return false;
+      if (vacancyVal && p.vacancy_status !== vacancyVal) return false;
+      return true;
+    });
+
+    // Sort
+    const sort = sortEl.value;
+    if (sort === 'price_asc')  filtered.sort((a,b) => a.price - b.price);
+    if (sort === 'price_desc') filtered.sort((a,b) => b.price - a.price);
+    // newest = default API order
+
+    currentPage = 1;
+    render();
+  }
+
+  // --- Render current page ---
+  function render() {
+    const total  = filtered.length;
+    const start  = (currentPage - 1) * PAGE_SIZE;
+    const page   = filtered.slice(start, start + PAGE_SIZE);
+
+    headerCount.textContent = `${total} verified properties available`;
+    countEl.textContent     = `Showing ${Math.min(start + 1, total)}–${Math.min(start + PAGE_SIZE, total)} of ${total} properties`;
+
+    errEl.style.display = total === 0 ? 'block' : 'none';
+    grid.innerHTML = total === 0 ? '' : page.map(renderPropertyCard).join('');
+    initReveal();
+    renderPagination(total);
+  }
+
+  // --- Pagination ---
+  function renderPagination(total) {
+    const pages = Math.ceil(total / PAGE_SIZE);
+    const el = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+
+    let html = `<button class="btn btn--ghost btn--sm" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">Previous</button>`;
+    for (let i = 1; i <= pages; i++) {
+      html += `<button class="btn ${i === currentPage ? 'btn--primary' : 'btn--ghost'} btn--sm" data-page="${i}">${i}</button>`;
+    }
+    html += `<button class="btn btn--ghost btn--sm" ${currentPage === pages ? 'disabled' : ''} data-page="${currentPage + 1}">Next</button>`;
+    el.innerHTML = html;
+
+    el.querySelectorAll('[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentPage = parseInt(btn.dataset.page);
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  }
+
+  // --- Price range display ---
+  priceRange.addEventListener('input', () => {
+    const val = parseInt(priceRange.value);
+    priceDisplay.textContent = val >= 500000 ? 'Any price' : `KES ${val.toLocaleString()}`;
+  });
+
+  // --- Filter chip toggle (single-select per group) ---
+  document.querySelectorAll('.filter-chips').forEach(group => {
+    group.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        group.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+  });
+
+  // --- Apply / Reset ---
+  document.getElementById('filter-apply').addEventListener('click', applyFilters);
+
+  document.getElementById('filter-reset').addEventListener('click', () => {
+    searchEl.value = '';
+    priceRange.value = 500000;
+    priceDisplay.textContent = 'Any price';
+    document.querySelectorAll('.filter-chips').forEach(group => {
+      group.querySelectorAll('.filter-chip').forEach((chip, i) => {
+        chip.classList.toggle('active', i === 0);
+      });
+    });
+    applyFilters();
+  });
+
+  // --- Live search ---
+  let searchTimer;
+  searchEl.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyFilters, 300);
+  });
+
+  // --- Sort change ---
+  sortEl.addEventListener('change', applyFilters);
+
+  // --- Boot ---
+  loadListings();
+})();
+</script>
+</body>
+</html>

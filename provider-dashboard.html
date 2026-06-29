@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Provider Dashboard — HomerrFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+  <style>
+    .dash { display:flex; min-height:100vh; padding-top:72px; }
+    .dash__sidebar { width:240px; flex-shrink:0; padding:32px 20px; border-right:1px solid var(--color-border); position:sticky; top:72px; height:calc(100vh - 72px); overflow-y:auto; }
+    .dash__main { flex:1; padding:40px 48px; }
+    .dash__greeting { font-family:'Instrument Serif',serif; font-size:2rem; margin-bottom:4px; }
+    .dash__sub { color:var(--color-muted); font-size:0.9rem; margin-bottom:40px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; font-size:0.88rem; font-weight:500; color:var(--color-muted); cursor:pointer; margin-bottom:4px; transition:background 0.15s, color 0.15s; border:none; background:none; width:100%; text-align:left; }
+    .nav-item:hover { background:var(--color-sage-ghost); color:var(--color-foreground); }
+    .nav-item.active { background:var(--color-sage-ghost); color:var(--color-sage-deep); }
+    .section { display:none; }
+    .section.active { display:block; }
+    .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:40px; }
+    .stat-card { background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); border:1px solid var(--color-border); border-radius:16px; padding:24px; }
+    .stat-card__value { font-size:2rem; font-weight:600; color:var(--color-sage-deep); margin-bottom:4px; }
+    .stat-card__label { font-size:0.82rem; color:var(--color-muted); }
+    .job-card { background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); border:1px solid var(--color-border); border-radius:16px; padding:20px 24px; margin-bottom:12px; }
+    .job-card__header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .job-card__category { font-weight:600; font-size:0.95rem; }
+    .badge { display:inline-block; padding:3px 12px; border-radius:20px; font-size:0.75rem; font-weight:500; }
+    .badge--open { background:#DBEAFE; color:#1E40AF; }
+    .badge--accepted { background:#DCFCE7; color:#166534; }
+    .badge--urgent { background:#FEF9C3; color:#854D0E; }
+    .badge--emergency { background:#FEE2E2; color:#991B1B; }
+    .badge--completed { background:#F3F4F6; color:#374151; }
+    .job-card__desc { font-size:0.88rem; color:var(--color-muted); margin-bottom:10px; }
+    .job-card__meta { font-size:0.78rem; color:var(--color-muted); display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
+    .job-card__actions { display:flex; gap:8px; }
+    .section-title { font-weight:600; font-size:1.1rem; margin-bottom:20px; }
+    .empty { text-align:center; padding:48px 20px; color:var(--color-muted); }
+    .empty__icon { font-size:2.5rem; margin-bottom:12px; }
+    .profile-form { background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); border:1px solid var(--color-border); border-radius:16px; padding:28px; }
+    .form-field { margin-bottom:16px; }
+    .form-field label { display:block; font-size:0.83rem; font-weight:500; margin-bottom:6px; }
+    .form-input { width:100%; padding:10px 14px; border:1px solid var(--color-border); border-radius:10px; font-size:0.88rem; font-family:inherit; outline:none; box-sizing:border-box; }
+    .form-input:focus { border-color:var(--color-sage-mid); }
+    .sk-card { height:100px; border-radius:16px; }
+    @media(max-width:768px) { .dash{flex-direction:column;} .dash__sidebar{width:100%;height:auto;position:relative;top:0;border-right:none;border-bottom:1px solid var(--color-border);padding:16px;display:flex;gap:8px;overflow-x:auto;} .dash__main{padding:24px 16px;} .stat-grid{grid-template-columns:repeat(2,1fr);} }
+  </style>
+</head>
+<body>
+<div class="mesh-bg" aria-hidden="true">
+  <div class="mesh-orb mesh-orb--1"></div>
+  <div class="mesh-orb mesh-orb--2"></div>
+  <div class="mesh-orb mesh-orb--3"></div>
+</div>
+
+<nav class="nav glass-nav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+      <span style="font-size:0.7rem;font-weight:600;letter-spacing:0.05em;color:var(--color-sage-mid);margin-left:6px;text-transform:uppercase;">Fix</span>
+    </a>
+    <div class="nav__actions" id="nav-actions"></div>
+  </div>
+</nav>
+
+<div class="dash">
+  <aside class="dash__sidebar">
+    <button class="nav-item active" data-tab="overview">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Overview
+    </button>
+    <button class="nav-item" data-tab="open">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Open Jobs
+    </button>
+    <button class="nav-item" data-tab="myjobs">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      My Jobs
+    </button>
+    <button class="nav-item" data-tab="profile">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      My Profile
+    </button>
+    <div style="padding-top:32px;border-top:1px solid var(--color-border);margin-top:32px;">
+      <button class="nav-item" id="logout-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="dash__main">
+    <div id="greeting" class="dash__greeting">Welcome back</div>
+    <p class="dash__sub">Manage your HomerrFix jobs and profile.</p>
+
+    <!-- OVERVIEW -->
+    <div class="section active" id="tab-overview">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-card__value" id="stat-open">—</div>
+          <div class="stat-card__label">Open jobs available</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__value" id="stat-active">—</div>
+          <div class="stat-card__label">Your active jobs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__value" id="stat-done">—</div>
+          <div class="stat-card__label">Completed</div>
+        </div>
+      </div>
+      <div class="section-title">Recent open jobs</div>
+      <div id="overview-jobs">
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+      </div>
+    </div>
+
+    <!-- OPEN JOBS -->
+    <div class="section" id="tab-open">
+      <div class="section-title">Open job requests</div>
+      <div id="open-jobs-list">
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+      </div>
+    </div>
+
+    <!-- MY JOBS -->
+    <div class="section" id="tab-myjobs">
+      <div class="section-title">Jobs you've accepted</div>
+      <div id="my-jobs-list">
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="section" id="tab-profile">
+      <div class="section-title">Your provider profile</div>
+      <div class="profile-form">
+        <div class="form-field">
+          <label>Business name</label>
+          <input class="form-input" id="p-business" placeholder="e.g. Kamau Plumbing Services" />
+        </div>
+        <div class="form-field">
+          <label>Primary category</label>
+          <select class="form-input" id="p-category">
+            <option value="">Select category</option>
+            <option value="plumbing">Plumbing</option>
+            <option value="electrical">Electrical</option>
+            <option value="fumigation">Fumigation</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="painting">Painting</option>
+            <option value="carpentry">Carpentry</option>
+            <option value="appliance_repair">Appliance Repair</option>
+            <option value="security">Security</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Phone number</label>
+          <input class="form-input" id="p-phone" type="tel" placeholder="+254 7XX XXX XXX" />
+        </div>
+        <div class="form-field">
+          <label>Bio <span style="font-weight:400;color:var(--color-muted);">(tell tenants about your experience)</span></label>
+          <textarea class="form-input" id="p-bio" rows="3" placeholder="e.g. 8 years experience in residential plumbing across Nairobi. Licensed and insured."></textarea>
+        </div>
+        <button class="btn btn--primary" id="save-profile">Save profile</button>
+        <div id="profile-feedback" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="static/js/api.js"></script>
+<script>
+(() => {
+  if (!requireRole('service_provider', 'login.html')) return;
+
+  const user = Auth.getUser();
+  document.getElementById('greeting').textContent = `Welcome back, ${user?.name?.split(' ')[0] || 'there'}`;
+
+  document.getElementById('nav-actions').innerHTML = `<button class="btn btn--primary" id="nav-logout">Sign out</button>`;
+  document.getElementById('nav-logout').addEventListener('click', () => { Auth.clearSession(); window.location.href = 'index.html'; });
+  document.getElementById('logout-btn').addEventListener('click', () => { Auth.clearSession(); window.location.href = 'index.html'; });
+
+  document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
+
+  const categoryIcons = { plumbing:'🔧', electrical:'⚡', fumigation:'🦟', cleaning:'🧹', painting:'🎨', carpentry:'🪚', appliance_repair:'🏠', security:'🔒', other:'🛠️' };
+
+  function urgencyBadge(u) {
+    const map = { normal:'', urgent:'badge--urgent', emergency:'badge--emergency' };
+    const label = { normal:'Normal', urgent:'⚡ Urgent', emergency:'🚨 Emergency' };
+    return u === 'normal' ? '' : `<span class="badge ${map[u]}">${label[u]}</span>`;
+  }
+
+  function renderOpenJob(j, showAccept=true) {
+    return `
+      <div class="job-card">
+        <div class="job-card__header">
+          <div class="job-card__category">${categoryIcons[j.category]||'🛠️'} ${j.category.replace(/_/g,' ')}</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${urgencyBadge(j.urgency)}
+            <span class="badge badge--open">Open</span>
+          </div>
+        </div>
+        <div class="job-card__desc">${j.description}</div>
+        <div class="job-card__meta">
+          <span>👤 ${j.tenant_name || 'Tenant'}</span>
+          ${j.address ? `<span>📍 ${j.address}</span>` : ''}
+          <span>🕐 ${new Date(j.created_at).toLocaleDateString('en-KE',{day:'numeric',month:'short'})}</span>
+        </div>
+        ${showAccept ? `<div class="job-card__actions"><button class="btn btn--primary btn--sm" onclick="acceptJob(${j.id}, this)">Accept job</button></div>` : ''}
+      </div>`;
+  }
+
+  function renderMyJob(j) {
+    const statusMap = { accepted:'badge--accepted', en_route:'badge--urgent', completed:'badge--completed' };
+    return `
+      <div class="job-card">
+        <div class="job-card__header">
+          <div class="job-card__category">${categoryIcons[j.category]||'🛠️'} ${j.category.replace(/_/g,' ')}</div>
+          <span class="badge ${statusMap[j.status]||'badge--accepted'}">${j.status.replace(/_/g,' ')}</span>
+        </div>
+        <div class="job-card__desc">${j.description}</div>
+        <div class="job-card__meta">
+          <span>👤 ${j.tenant_name || 'Tenant'}</span>
+          ${j.address ? `<span>📍 ${j.address}</span>` : ''}
+        </div>
+        ${j.status !== 'completed' ? `
+        <div class="job-card__actions">
+          ${j.status === 'accepted' ? `<button class="btn btn--ghost btn--sm" onclick="updateStatus(${j.id},'en_route',this)">Mark en route</button>` : ''}
+          ${j.status === 'en_route' ? `<button class="btn btn--ghost btn--sm" onclick="updateStatus(${j.id},'in_progress',this)">Mark arrived</button>` : ''}
+          ${j.status === 'in_progress' ? `<button class="btn btn--primary btn--sm" onclick="updateStatus(${j.id},'completed',this)">Mark complete</button>` : ''}
+        </div>` : ''}
+      </div>`;
+  }
+
+  window.acceptJob = async function(id, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Accepting…';
+    try {
+      await apiFetch(`/jobs/${id}/accept`, { method: 'POST' });
+      btn.closest('.job-card').style.opacity = '0.5';
+      btn.textContent = 'Accepted ✓';
+      loadAll();
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Accept job';
+      alert(e.message);
+    }
+  };
+
+  window.updateStatus = async function(id, status, btn) {
+    btn.disabled = true;
+    try {
+      await apiFetch(`/jobs/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      loadAll();
+    } catch(e) {
+      btn.disabled = false;
+      alert(e.message);
+    }
+  };
+
+  async function loadAll() {
+    try {
+      const [openJobs, myJobs] = await Promise.all([
+        apiFetch('/jobs/open').catch(() => []),
+        apiFetch('/jobs').catch(() => []),
+      ]);
+
+      const active = (myJobs||[]).filter(j => j.status !== 'completed');
+      const done = (myJobs||[]).filter(j => j.status === 'completed');
+
+      document.getElementById('stat-open').textContent = (openJobs||[]).length;
+      document.getElementById('stat-active').textContent = active.length;
+      document.getElementById('stat-done').textContent = done.length;
+
+      // Overview
+      const overviewEl = document.getElementById('overview-jobs');
+      const recent = (openJobs||[]).slice(0,3);
+      overviewEl.innerHTML = recent.length
+        ? recent.map(j => renderOpenJob(j)).join('')
+        : '<div class="empty"><div class="empty__icon">🔧</div>No open jobs right now. Check back soon.</div>';
+
+      // Open jobs tab
+      document.getElementById('open-jobs-list').innerHTML = (openJobs||[]).length
+        ? (openJobs||[]).map(j => renderOpenJob(j)).join('')
+        : '<div class="empty"><div class="empty__icon">🔧</div>No open jobs in your category right now.</div>';
+
+      // My jobs tab
+      document.getElementById('my-jobs-list').innerHTML = (myJobs||[]).length
+        ? (myJobs||[]).map(renderMyJob).join('')
+        : '<div class="empty"><div class="empty__icon">📋</div>No accepted jobs yet. Browse open jobs to get started.</div>';
+
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  // Profile save
+  document.getElementById('save-profile').addEventListener('click', async () => {
+    const btn = document.getElementById('save-profile');
+    const feedback = document.getElementById('profile-feedback');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await apiFetch('/providers/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          business_name: document.getElementById('p-business').value,
+          category: document.getElementById('p-category').value,
+          phone: document.getElementById('p-phone').value,
+          bio: document.getElementById('p-bio').value,
+        })
+      });
+      feedback.innerHTML = '<div style="color:#166534;font-size:0.83rem;">✓ Profile saved.</div>';
+    } catch(e) {
+      feedback.innerHTML = `<div style="color:#DC2626;font-size:0.83rem;">${e.message}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save profile';
+    }
+  });
+
+  // Load profile
+  apiFetch('/providers/profile').then(p => {
+    if (!p) return;
+    if (p.business_name) document.getElementById('p-business').value = p.business_name;
+    if (p.category) document.getElementById('p-category').value = p.category;
+    if (p.phone) document.getElementById('p-phone').value = p.phone;
+    if (p.bio) document.getElementById('p-bio').value = p.bio;
+  }).catch(() => {});
+
+  loadAll();
+})();
+</script>
+</body>
+</html>

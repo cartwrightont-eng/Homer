@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HomerrFix — Request a Service</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+  <style>
+    .fix-page { max-width: 900px; margin: 0 auto; padding: 100px 24px 60px; }
+    .fix-hero { text-align: center; margin-bottom: 48px; }
+    .fix-hero__eyebrow { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-sage-mid); margin-bottom: 12px; }
+    .fix-hero__title { font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 5vw, 3rem); color: var(--color-foreground); margin-bottom: 12px; }
+    .fix-hero__sub { font-size: 0.95rem; color: var(--color-muted); max-width: 480px; margin: 0 auto; }
+    .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 40px; }
+    .category-card {
+      background: rgba(255,255,255,0.6); backdrop-filter: blur(12px);
+      border: 2px solid var(--color-border); border-radius: 16px;
+      padding: 20px 16px; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .category-card:hover { border-color: var(--color-sage-mid); }
+    .category-card.selected { border-color: var(--color-sage-deep); background: var(--color-sage-ghost); }
+    .category-card__icon { font-size: 2rem; margin-bottom: 8px; }
+    .category-card__name { font-size: 0.83rem; font-weight: 600; color: var(--color-foreground); }
+    .job-form {
+      background: rgba(255,255,255,0.6); backdrop-filter: blur(12px);
+      border: 1px solid var(--color-border); border-radius: 20px; padding: 32px;
+      margin-bottom: 40px;
+    }
+    .form-field { margin-bottom: 20px; }
+    .form-field label { display: block; font-size: 0.83rem; font-weight: 500; margin-bottom: 6px; color: var(--color-foreground); }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 10px; font-size: 0.88rem; font-family: inherit; outline: none; box-sizing: border-box; background: white; }
+    .form-input:focus { border-color: var(--color-sage-mid); }
+    textarea.form-input { resize: vertical; min-height: 100px; }
+    .urgency-row { display: flex; gap: 10px; }
+    .urgency-btn {
+      flex: 1; padding: 10px; border: 2px solid var(--color-border); border-radius: 10px;
+      font-size: 0.83rem; font-weight: 500; cursor: pointer; background: white;
+      transition: border-color 0.15s, background 0.15s; text-align: center;
+    }
+    .urgency-btn.selected { border-color: var(--color-sage-deep); background: var(--color-sage-ghost); color: var(--color-sage-deep); }
+    .jobs-section { margin-top: 48px; }
+    .jobs-title { font-family: 'Instrument Serif', serif; font-size: 1.5rem; margin-bottom: 20px; }
+    .job-card {
+      background: rgba(255,255,255,0.6); backdrop-filter: blur(12px);
+      border: 1px solid var(--color-border); border-radius: 16px;
+      padding: 20px 24px; margin-bottom: 12px;
+    }
+    .job-card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .job-card__category { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .job-card__status { padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+    .status-open { background: #DBEAFE; color: #1E40AF; }
+    .status-accepted { background: #DCFCE7; color: #166534; }
+    .status-completed { background: #F3F4F6; color: #374151; }
+    .status-en_route { background: #FEF9C3; color: #854D0E; }
+    .job-card__desc { font-size: 0.88rem; color: var(--color-muted); margin-bottom: 10px; }
+    .job-card__meta { font-size: 0.78rem; color: var(--color-muted); display: flex; gap: 16px; }
+    .provider-info { margin-top: 12px; padding: 12px 16px; background: var(--color-sage-ghost); border-radius: 10px; font-size: 0.85rem; }
+    .empty { text-align: center; padding: 48px 20px; color: var(--color-muted); }
+    .empty__icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .login-prompt { text-align: center; padding: 48px 20px; }
+    @media(max-width: 600px) { .urgency-row { flex-direction: column; } .categories-grid { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+<div class="mesh-bg" aria-hidden="true">
+  <div class="mesh-orb mesh-orb--1"></div>
+  <div class="mesh-orb mesh-orb--2"></div>
+  <div class="mesh-orb mesh-orb--3"></div>
+</div>
+
+<nav class="nav glass-nav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="listings.html" class="nav__link">Browse</a></li>
+      <li><a href="homerr-fix.html" class="nav__link" style="color:var(--color-sage-deep);">HomerrFix</a></li>
+    </ul>
+    <div class="nav__actions" id="nav-actions">
+      <a href="login.html" class="btn btn--ghost">Sign in</a>
+    </div>
+  </div>
+</nav>
+
+<div class="fix-page">
+  <div class="fix-hero reveal">
+    <div class="fix-hero__eyebrow">HomerrFix</div>
+    <h1 class="fix-hero__title">Book a service provider,<br><em>instantly</em></h1>
+    <p class="fix-hero__sub">Verified plumbers, electricians, fumigators and more — available across Nairobi.</p>
+  </div>
+
+  <div id="main-content">
+    <!-- Not logged in -->
+    <div id="login-prompt" style="display:none;" class="login-prompt">
+      <div style="font-size:2.5rem;margin-bottom:16px;">🔧</div>
+      <div style="font-weight:600;font-size:1.1rem;margin-bottom:8px;">Sign in to request a service</div>
+      <div style="font-size:0.88rem;color:var(--color-muted);margin-bottom:24px;">Create a free account to book verified service providers.</div>
+      <a href="login.html" class="btn btn--primary">Sign in</a>
+      <a href="register.html" class="btn btn--ghost" style="margin-left:10px;">Register</a>
+    </div>
+
+    <!-- Logged in -->
+    <div id="logged-in-content" style="display:none;">
+
+      <!-- Category picker -->
+      <div style="font-size:0.83rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--color-muted);margin-bottom:16px;">Select a service</div>
+      <div class="categories-grid reveal">
+        <div class="category-card" data-value="plumbing"><div class="category-card__icon">🔧</div><div class="category-card__name">Plumbing</div></div>
+        <div class="category-card" data-value="electrical"><div class="category-card__icon">⚡</div><div class="category-card__name">Electrical</div></div>
+        <div class="category-card" data-value="fumigation"><div class="category-card__icon">🦟</div><div class="category-card__name">Fumigation</div></div>
+        <div class="category-card" data-value="cleaning"><div class="category-card__icon">🧹</div><div class="category-card__name">Cleaning</div></div>
+        <div class="category-card" data-value="painting"><div class="category-card__icon">🎨</div><div class="category-card__name">Painting</div></div>
+        <div class="category-card" data-value="carpentry"><div class="category-card__icon">🪚</div><div class="category-card__name">Carpentry</div></div>
+        <div class="category-card" data-value="appliance_repair"><div class="category-card__icon">🏠</div><div class="category-card__name">Appliances</div></div>
+        <div class="category-card" data-value="security"><div class="category-card__icon">🔒</div><div class="category-card__name">Security</div></div>
+        <div class="category-card" data-value="other"><div class="category-card__icon">🛠️</div><div class="category-card__name">Other</div></div>
+      </div>
+
+      <!-- Job form -->
+      <div class="job-form reveal">
+        <div style="font-weight:600;font-size:1rem;margin-bottom:20px;">Describe the job</div>
+
+        <div class="form-field">
+          <label>Selected service</label>
+          <input class="form-input" id="selected-category" readonly placeholder="Choose a category above" style="background:var(--color-sage-ghost);cursor:default;" />
+        </div>
+
+        <div class="form-field">
+          <label>Description <span style="color:var(--color-muted);font-weight:400;">(what needs fixing?)</span></label>
+          <textarea class="form-input" id="job-desc" placeholder="e.g. Leaking pipe under the kitchen sink, water pooling on the floor..."></textarea>
+        </div>
+
+        <div class="form-field">
+          <label>Your address <span style="color:var(--color-muted);font-weight:400;">(optional — for provider to find you)</span></label>
+          <input class="form-input" id="job-address" placeholder="e.g. Apt 4B, Kilimani Apartments, Argwings Kodhek Rd" />
+        </div>
+
+        <div class="form-field">
+          <label>Urgency</label>
+          <div class="urgency-row">
+            <button class="urgency-btn selected" data-value="normal">🕐 Normal<br><span style="font-size:0.75rem;font-weight:400;">Within 24–48hrs</span></button>
+            <button class="urgency-btn" data-value="urgent">⚡ Urgent<br><span style="font-size:0.75rem;font-weight:400;">Within a few hours</span></button>
+            <button class="urgency-btn" data-value="emergency">🚨 Emergency<br><span style="font-size:0.75rem;font-weight:400;">Right now</span></button>
+          </div>
+        </div>
+
+        <button class="btn btn--primary btn--lg" id="submit-job" style="width:100%;justify-content:center;margin-top:8px;">
+          Post job request
+        </button>
+        <div id="job-feedback" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- My jobs -->
+      <div class="jobs-section">
+        <div class="jobs-title">Your job requests</div>
+        <div id="jobs-list">
+          <div class="job-card skeleton" style="height:100px;"></div>
+          <div class="job-card skeleton" style="height:100px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="static/js/api.js"></script>
+<script>
+(() => {
+  initNav();
+
+  const categoryIcons = { plumbing:'🔧', electrical:'⚡', fumigation:'🦟', cleaning:'🧹', painting:'🎨', carpentry:'🪚', appliance_repair:'🏠', security:'🔒', other:'🛠️' };
+
+  if (!Auth.isLoggedIn()) {
+    document.getElementById('login-prompt').style.display = 'block';
+    return;
+  }
+  document.getElementById('logged-in-content').style.display = 'block';
+
+  let selectedCategory = '';
+  let selectedUrgency = 'normal';
+
+  // Category selection
+  document.querySelectorAll('.category-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedCategory = card.dataset.value;
+      document.getElementById('selected-category').value = card.querySelector('.category-card__name').textContent;
+    });
+  });
+
+  // Urgency selection
+  document.querySelectorAll('.urgency-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.urgency-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedUrgency = btn.dataset.value;
+    });
+  });
+
+  // Submit job
+  document.getElementById('submit-job').addEventListener('click', async () => {
+    const btn = document.getElementById('submit-job');
+    const feedback = document.getElementById('job-feedback');
+    const desc = document.getElementById('job-desc').value.trim();
+    const address = document.getElementById('job-address').value.trim();
+
+    if (!selectedCategory) {
+      feedback.innerHTML = '<div style="color:#DC2626;font-size:0.83rem;">Please select a service category.</div>';
+      return;
+    }
+    if (!desc) {
+      feedback.innerHTML = '<div style="color:#DC2626;font-size:0.83rem;">Please describe the job.</div>';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Posting…';
+    try {
+      await apiFetch('/jobs', {
+        method: 'POST',
+        body: JSON.stringify({ category: selectedCategory, description: desc, address, urgency: selectedUrgency })
+      });
+      btn.textContent = 'Job posted ✓';
+      btn.style.background = '#27AE60';
+      document.getElementById('job-desc').value = '';
+      document.getElementById('job-address').value = '';
+      feedback.innerHTML = '<div style="color:#166534;font-size:0.83rem;margin-top:4px;">✓ Your request has been posted. A verified provider will accept it shortly.</div>';
+      loadJobs();
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Post job request';
+      feedback.innerHTML = `<div style="color:#DC2626;font-size:0.83rem;">${e.message}</div>`;
+    }
+  });
+
+  function statusBadge(status) {
+    const map = { open:'status-open', accepted:'status-accepted', en_route:'status-en_route', completed:'status-completed' };
+    const label = { open:'Open', accepted:'Accepted', en_route:'En route', in_progress:'In progress', completed:'Completed', cancelled:'Cancelled' };
+    return `<span class="job-card__status ${map[status]||'status-open'}">${label[status]||status}</span>`;
+  }
+
+  async function loadJobs() {
+    const list = document.getElementById('jobs-list');
+    try {
+      const jobs = await apiFetch('/jobs');
+      if (!jobs || !jobs.length) {
+        list.innerHTML = '<div class="empty"><div class="empty__icon">🔧</div>No job requests yet. Post one above.</div>';
+        return;
+      }
+      list.innerHTML = jobs.map(j => `
+        <div class="job-card">
+          <div class="job-card__header">
+            <div class="job-card__category">${categoryIcons[j.category]||'🛠️'} ${j.category.replace(/_/g,' ')}</div>
+            ${statusBadge(j.status)}
+          </div>
+          <div class="job-card__desc">${j.description}</div>
+          <div class="job-card__meta">
+            <span>📍 ${j.address || 'No address given'}</span>
+            <span>⚡ ${j.urgency}</span>
+            <span>🕐 ${new Date(j.created_at).toLocaleDateString('en-KE',{day:'numeric',month:'short'})}</span>
+          </div>
+          ${j.provider_name ? `<div class="provider-info">👷 <strong>${j.provider_name}</strong>${j.provider_phone ? ` · <a href="tel:${j.provider_phone}">${j.provider_phone}</a>` : ''} is handling your request.</div>` : ''}
+        </div>`).join('');
+    } catch(e) {
+      list.innerHTML = '<div class="empty"><div class="empty__icon">⚠️</div>Could not load jobs.</div>';
+    }
+  }
+
+  loadJobs();
+})();
+</script>
+</body>
+</html>

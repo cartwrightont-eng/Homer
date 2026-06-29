@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account — Homerr</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+
+<div class="mesh-bg" aria-hidden="true">
+  <div class="mesh-orb mesh-orb--1"></div>
+  <div class="mesh-orb mesh-orb--2"></div>
+  <div class="mesh-orb mesh-orb--3"></div>
+</div>
+
+<div class="auth-page">
+
+  <!-- Visual side -->
+  <div class="auth-visual">
+    <div class="auth-visual__content">
+      <div class="auth-visual__quote">
+        "Listed my three properties in under an hour. First inquiry the same afternoon."
+      </div>
+      <div class="auth-visual__author">— James Kariuki, landlord, Nairobi</div>
+    </div>
+  </div>
+
+  <!-- Form side -->
+  <div class="auth-form-side">
+    <div class="auth-form-inner">
+
+      <div class="auth-logo">
+        <a href="index.html" style="display:flex;align-items:baseline;">
+          <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+        </a>
+      </div>
+
+      <!-- Step 1: Registration form -->
+      <div id="step-register">
+        <h1 class="auth-title">Create your account</h1>
+        <p class="auth-sub">Already have one? <a href="login.html">Sign in</a></p>
+
+        <!-- Role selector -->
+        <div class="role-selector" id="role-selector">
+          <div class="role-option selected" data-role="user">
+            <div class="role-option__icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage-deep)" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div class="role-option__label">I'm a renter</div>
+            <div class="role-option__sub">Looking for a home</div>
+          </div>
+          <div class="role-option" data-role="landlord">
+            <div class="role-option__icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage-deep)" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+              </svg>
+            </div>
+            <div class="role-option__label">I'm a landlord</div>
+            <div class="role-option__sub">Listing my property</div>
+          </div>
+        </div>
+
+        <form id="register-form" novalidate>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-field" style="margin-bottom:0;">
+              <label for="first-name">First name</label>
+              <input class="form-input" id="first-name" type="text" placeholder="Jane" autocomplete="given-name" required />
+            </div>
+            <div class="form-field" style="margin-bottom:0;">
+              <label for="last-name">Last name</label>
+              <input class="form-input" id="last-name" type="text" placeholder="Wanjiru" autocomplete="family-name" required />
+            </div>
+          </div>
+
+          <div class="form-field" style="margin-top:14px;">
+            <label for="reg-email">Email address</label>
+            <input class="form-input" id="reg-email" type="email"
+              placeholder="jane@example.com" autocomplete="email" required />
+          </div>
+
+          <div class="form-field">
+            <label for="reg-password">Password</label>
+            <div style="position:relative;">
+              <input class="form-input" id="reg-password" type="password"
+                placeholder="Min. 8 characters" autocomplete="new-password"
+                required minlength="8" style="padding-right:44px;" />
+              <button type="button" id="toggle-pw-reg" aria-label="Show password"
+                style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--color-muted);cursor:pointer;background:none;border:none;padding:0;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Password strength -->
+          <div style="display:flex;gap:4px;margin-top:-10px;margin-bottom:16px;">
+            <div class="pw-bar" style="flex:1;height:3px;border-radius:99px;background:var(--color-border);transition:background 300ms;"></div>
+            <div class="pw-bar" style="flex:1;height:3px;border-radius:99px;background:var(--color-border);transition:background 300ms;"></div>
+            <div class="pw-bar" style="flex:1;height:3px;border-radius:99px;background:var(--color-border);transition:background 300ms;"></div>
+            <div class="pw-bar" style="flex:1;height:3px;border-radius:99px;background:var(--color-border);transition:background 300ms;"></div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+            <input type="checkbox" id="terms" style="accent-color:var(--color-sage-deep);width:16px;height:16px;margin-top:2px;flex-shrink:0;" required />
+            <label for="terms" style="font-size:0.82rem;color:var(--color-muted);cursor:pointer;line-height:1.5;">
+              I agree to Homerr's <a href="#" style="color:var(--color-sage-deep);">Terms of Service</a> and <a href="#" style="color:var(--color-sage-deep);">Privacy Policy</a>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--lg" id="register-btn"
+            style="width:100%;justify-content:center;margin-top:8px;">
+            Create account
+          </button>
+
+          <div id="register-feedback"></div>
+
+        </form>
+      </div>
+
+      <!-- Step 2: Email verification -->
+      <div id="step-verify" style="display:none;text-align:center;">
+        <div style="width:64px;height:64px;background:var(--color-sage-ghost);border:1px solid var(--color-sage-tint);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage-deep)" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <h2 class="auth-title" style="font-size:1.6rem;">Check your inbox</h2>
+        <p style="font-size:0.9rem;color:var(--color-muted);line-height:1.7;margin-bottom:28px;">
+          We've sent a verification link to <strong id="verify-email-display"></strong>.<br />
+          Click it to activate your account.
+        </p>
+
+        <!-- Dev helper: paste token manually if no email service is set up yet -->
+        <div style="background:var(--color-sage-ghost);border:1px solid var(--color-sage-tint);border-radius:var(--radius-md);padding:20px;text-align:left;margin-bottom:20px;">
+          <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-sage-mid);margin-bottom:8px;">
+            No email service? Paste your token here:
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" id="verify-token-input" type="text"
+              placeholder="Paste verification token…" style="font-size:0.8rem;" />
+            <button class="btn btn--primary btn--sm" id="verify-token-btn">Verify</button>
+          </div>
+          <div id="verify-feedback"></div>
+        </div>
+
+        <a href="login.html" class="btn btn--ghost" style="width:100%;justify-content:center;">Go to sign in</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="static/js/api.js"></script>
+<script>
+(() => {
+  redirectIfLoggedIn('index.html');
+
+  let selectedRole = 'user';
+
+  // Role selector
+  document.querySelectorAll('.role-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selectedRole = opt.dataset.role;
+    });
+  });
+
+  // Password visibility
+  document.getElementById('toggle-pw-reg').addEventListener('click', () => {
+    const pw = document.getElementById('reg-password');
+    pw.type  = pw.type === 'password' ? 'text' : 'password';
+  });
+
+  // Password strength
+  document.getElementById('reg-password').addEventListener('input', function () {
+    const val = this.value;
+    let strength = 0;
+    if (val.length >= 8)         strength++;
+    if (/[A-Z]/.test(val))       strength++;
+    if (/[0-9]/.test(val))       strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+    const colors = ['', '#EF4444', '#F59E0B', '#3B82F6', '#22C55E'];
+    document.querySelectorAll('.pw-bar').forEach((bar, i) => {
+      bar.style.background = i < strength ? colors[strength] : 'var(--color-border)';
+    });
+  });
+
+  // Register submit
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const feedbackEl = document.getElementById('register-feedback');
+    feedbackEl.innerHTML = '';
+
+    const firstName = document.getElementById('first-name').value.trim();
+    const lastName  = document.getElementById('last-name').value.trim();
+    const email     = document.getElementById('reg-email').value.trim();
+    const password  = document.getElementById('reg-password').value;
+    const terms     = document.getElementById('terms').checked;
+
+    if (!firstName || !lastName) { showError(feedbackEl, 'Please enter your full name.'); return; }
+    if (!email)    { showError(feedbackEl, 'Please enter your email address.'); return; }
+    if (password.length < 8) { showError(feedbackEl, 'Password must be at least 8 characters.'); return; }
+    if (!terms)    { showError(feedbackEl, 'Please accept the Terms of Service to continue.'); return; }
+
+    const btn = document.getElementById('register-btn');
+    setLoading(btn, true, 'Create account');
+
+    try {
+      const res = await API.register(
+        `${firstName} ${lastName}`,
+        email,
+        password,
+        selectedRole,
+      );
+
+      // Show verification step
+      document.getElementById('step-register').style.display = 'none';
+      document.getElementById('step-verify').style.display   = 'block';
+      document.getElementById('verify-email-display').textContent = email;
+
+      // If API returns token directly (dev mode), pre-fill it
+      if (res.email_verification_token) {
+        document.getElementById('verify-token-input').value = res.email_verification_token;
+      }
+
+    } catch (err) {
+      setLoading(btn, false, 'Create account');
+      showError(feedbackEl, err.message || 'Registration failed. Please try again.');
+    }
+  });
+
+  // Manual token verification
+  document.getElementById('verify-token-btn').addEventListener('click', async () => {
+    const token      = document.getElementById('verify-token-input').value.trim();
+    const feedbackEl = document.getElementById('verify-feedback');
+    if (!token) { showError(feedbackEl, 'Paste your verification token above.'); return; }
+
+    const btn = document.getElementById('verify-token-btn');
+    setLoading(btn, true, 'Verify');
+    try {
+      await API.verifyEmail(token);
+      showSuccess(feedbackEl, 'Email verified! Redirecting to sign in…');
+      setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+    } catch (err) {
+      setLoading(btn, false, 'Verify');
+      showError(feedbackEl, 'Invalid or expired token. Request a new one.');
+    }
+  });
+})();
+</script>
+</body>
+</html>

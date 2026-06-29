@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homerr — Premium Rentals in Nairobi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+
+<div class="mesh-bg" aria-hidden="true">
+  <div class="mesh-orb mesh-orb--1"></div>
+  <div class="mesh-orb mesh-orb--2"></div>
+  <div class="mesh-orb mesh-orb--3"></div>
+</div>
+
+<nav class="nav glass-nav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="listings.html" class="nav__link">Browse</a></li>
+      <li><a href="#features" class="nav__link">How it works</a></li>
+    </ul>
+    <div class="nav__actions">
+      <a href="login.html" class="btn btn--ghost">Sign in</a>
+      <a href="register.html" class="btn btn--primary">List a property</a>
+    </div>
+    <button class="nav__hamburger" aria-label="Menu" aria-expanded="false">
+      <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+        <rect y="0" width="22" height="2" rx="1" fill="currentColor"/>
+        <rect y="7" width="16" height="2" rx="1" fill="currentColor"/>
+        <rect y="14" width="22" height="2" rx="1" fill="currentColor"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero__inner">
+        <div class="hero__copy">
+          <div class="hero__eyebrow reveal">
+            <span class="hero__eyebrow-dot"></span>
+            Now live in Nairobi
+          </div>
+          <h1 class="hero__title reveal reveal--delay-1">
+            Find a home that<br /><em>feels like yours</em>
+          </h1>
+          <p class="hero__subtitle reveal reveal--delay-2">
+            Homerr connects renters with verified landlords across Nairobi.
+            No agents. No hidden fees. Just the right home.
+          </p>
+
+          <div class="hero__search reveal reveal--delay-3">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#6B7280;flex-shrink:0">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" id="hero-search" placeholder="Search by location, e.g. Westlands, Karen…" aria-label="Search properties" />
+            <button class="btn btn--primary" id="hero-search-btn">Search</button>
+          </div>
+
+          <div class="reveal reveal--delay-3" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:0.78rem;color:var(--color-muted);">Popular:</span>
+            <a href="listings.html?location=Westlands" class="tag">Westlands</a>
+            <a href="listings.html?location=Karen" class="tag">Karen</a>
+            <a href="listings.html?location=Kilimani" class="tag">Kilimani</a>
+            <a href="listings.html?location=Lavington" class="tag">Lavington</a>
+          </div>
+
+          <div class="hero__stats reveal reveal--delay-4">
+            <div class="hero__stat">
+              <div class="hero__stat-value" id="stat-listings">—</div>
+              <div class="hero__stat-label">Active listings</div>
+            </div>
+            <div class="hero__stat">
+              <div class="hero__stat-value" id="stat-landlords">—</div>
+              <div class="hero__stat-label">Verified landlords</div>
+            </div>
+            <div class="hero__stat">
+              <div class="hero__stat-value">14 days</div>
+              <div class="hero__stat-label">Avg. time to move in</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero__visual reveal reveal--delay-2">
+          <div class="hero__card-stack">
+            <div class="hero__card hero__card--main">
+              <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=700&q=80" alt="Modern apartment" />
+            </div>
+            <div class="hero__card hero__card--float hero__card--price">
+              <div class="hero__card-price-label">Monthly rent</div>
+              <div class="hero__card-price-value" id="hero-sample-price">KES 85,000</div>
+              <div class="hero__card-price-sub" id="hero-sample-loc">Kilimani · 3 bed</div>
+            </div>
+            <div class="hero__card hero__card--float hero__card--verified">
+              <div class="hero__card-verified-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage-deep)" stroke-width="2.5">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <div class="hero__card-verified-title">Verified landlord</div>
+              <div class="hero__card-verified-sub">ID + title deed confirmed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Why Homerr</span>
+        <h2 class="section-title">Renting done properly</h2>
+        <p class="section-sub">Every part of the rental process that wastes your time and exposes you to risk — removed.</p>
+      </div>
+      <div class="features__grid">
+        <div class="feature-card reveal reveal--delay-1">
+          <div class="feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="feature-title">Verified listings only</div>
+          <p class="feature-desc">Every property is visited and confirmed. Land records, landlord identity, and actual photos — all checked before going live.</p>
+        </div>
+        <div class="feature-card reveal reveal--delay-2">
+          <div class="feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          </div>
+          <div class="feature-title">Pay securely via M-Pesa</div>
+          <p class="feature-desc">Deposit and rent payments go through our escrow system. Your money is protected until you confirm the property matches.</p>
+        </div>
+        <div class="feature-card reveal reveal--delay-3">
+          <div class="feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="feature-title">Direct contact, no middlemen</div>
+          <p class="feature-desc">Message landlords directly inside the platform. No agents, no commissions, no numbers sold to strangers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED LISTINGS — loaded from API -->
+  <section class="featured">
+    <div class="container">
+      <div class="featured__header reveal">
+        <div>
+          <span class="section-eyebrow">Featured</span>
+          <h2 class="section-title" style="margin-bottom:0;">Handpicked this week</h2>
+        </div>
+        <a href="listings.html" class="btn btn--ghost">View all listings</a>
+      </div>
+
+      <div class="listings-grid" id="featured-grid">
+        <!-- Skeletons shown while API loads -->
+      </div>
+
+      <div id="featured-error" style="display:none;text-align:center;padding:40px;color:var(--color-muted);"></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-card reveal">
+        <div>
+          <h2 class="cta-title">Own property in Nairobi?<br /><em style="font-style:italic;opacity:0.85;">List it in minutes.</em></h2>
+          <p class="cta-sub">Join landlords already managing their properties on Homerr. No monthly fees until your first tenant is placed.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;flex-shrink:0;">
+          <a href="register.html" class="btn btn--primary btn--lg">Get started free</a>
+          <span style="font-size:0.78rem;color:rgba(255,255,255,0.55);padding-left:4px;">No credit card required</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="nav__logo-mark">H</span><span class="nav__logo-text">omerr</span>
+        <p class="footer__tagline">Premium rentals, simplified.</p>
+      </div>
+      <div class="footer__links">
+        <div class="footer__col"><h4>Platform</h4><ul><li><a href="listings.html">Browse listings</a></li><li><a href="register.html">Post a property</a></li></ul></div>
+        <div class="footer__col"><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Contact</a></li></ul></div>
+        <div class="footer__col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+      </div>
+    </div>
+    <div class="footer__bottom"><p>&copy; 2024 Homerr. Built for Nairobi.</p></div>
+  </div>
+</footer>
+
+<script src="static/js/api.js"></script>
+<script src="static/js/main.js"></script>
+<script>
+(async () => {
+  initNav();
+
+  const grid = document.getElementById('featured-grid');
+  const errEl = document.getElementById('featured-error');
+
+  // Show skeletons immediately
+  renderSkeletons(grid, 3);
+
+  try {
+    // Load featured listings (approved, vacant, rent)
+    const listings = await API.getListings({ vacancy: 'vacant', availability: 'rent' });
+    const featured = listings.slice(0, 3);
+
+    if (featured.length === 0) {
+      grid.innerHTML = '';
+      errEl.style.display = 'block';
+      errEl.textContent = 'No listings available right now. Check back soon.';
+      return;
+    }
+
+    grid.innerHTML = featured.map(renderPropertyCard).join('');
+    initReveal();
+
+    // Update hero floating card with a real listing
+    const first = featured[0];
+    const priceEl = document.getElementById('hero-sample-price');
+    const locEl   = document.getElementById('hero-sample-loc');
+    if (priceEl) priceEl.textContent = `KES ${Number(first.price).toLocaleString()}`;
+    if (locEl)   locEl.textContent   = first.location;
+
+  } catch (err) {
+    grid.innerHTML = '';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Could not load listings. Please try again later.';
+  }
+
+  // Load stats from analytics endpoint (admin only, so graceful fallback)
+  try {
+    const analytics = await API.getAnalytics();
+    const listStat = document.getElementById('stat-listings');
+    const landlStat = document.getElementById('stat-landlords');
+    if (listStat) listStat.textContent = analytics.approved_listings + '+';
+    if (landlStat) landlStat.textContent = analytics.total_landlords + '+';
+  } catch {
+    // Non-admin users can't hit /admin/analytics — show static fallback
+    const listStat = document.getElementById('stat-listings');
+    const landlStat = document.getElementById('stat-landlords');
+    if (listStat) listStat.textContent = '—';
+    if (landlStat) landlStat.textContent = '—';
+  }
+
+  // Hero search button
+  document.getElementById('hero-search-btn')?.addEventListener('click', () => {
+    const q = document.getElementById('hero-search').value.trim();
+    window.location.href = `listings.html${q ? '?q=' + encodeURIComponent(q) : ''}`;
+  });
+
+  document.getElementById('hero-search')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('hero-search-btn').click();
+  });
+})();
+</script>
+</body>
+</html>
