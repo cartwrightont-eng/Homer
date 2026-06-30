@@ -41,6 +41,41 @@
     .tab-btn.active { color:var(--color-sage-deep); border-bottom-color:var(--color-sage-deep); }
     .tab-panel { display:none; }
     .tab-panel.active { display:block; }
+
+    .reviews-section { margin-top: 32px; }
+    .reviews-title { font-weight:600; font-size:1rem; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; }
+    .avg-rating { display:flex; align-items:center; gap:8px; }
+    .stars { color:#F59E0B; font-size:1.1rem; letter-spacing:2px; }
+    .review-card { background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); border:1px solid var(--color-border); border-radius:14px; padding:18px 20px; margin-bottom:10px; }
+    .review-card__header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .review-avatar { width:36px; height:36px; border-radius:50%; background:var(--color-sage-ghost); display:flex; align-items:center; justify-content:center; font-weight:600; color:var(--color-sage-deep); font-size:0.88rem; flex-shrink:0; }
+    .review-card__name { font-weight:600; font-size:0.88rem; }
+    .review-card__date { font-size:0.75rem; color:var(--color-muted); }
+    .review-card__stars { color:#F59E0B; font-size:0.85rem; }
+    .review-card__comment { font-size:0.88rem; color:var(--color-muted); line-height:1.6; }
+    .write-review { background:var(--color-sage-ghost); border:1px solid var(--color-sage-tint); border-radius:14px; padding:18px 20px; margin-top:16px; }
+    .write-review__title { font-weight:600; font-size:0.88rem; margin-bottom:12px; }
+    .star-picker { display:flex; gap:4px; margin-bottom:10px; cursor:pointer; }
+    .star-picker span { font-size:1.5rem; color:#D1D5DB; transition:color 0.1s; }
+    .star-picker span.active { color:#F59E0B; }
+    .review-input { width:100%; padding:10px 14px; border:1px solid var(--color-border); border-radius:10px; font-size:0.85rem; font-family:inherit; outline:none; resize:vertical; min-height:80px; box-sizing:border-box; }
+    .review-input:focus { border-color:var(--color-sage-mid); }
+
+
+    .mortgage-calc { background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); border:1px solid var(--color-border); border-radius:16px; padding:24px; }
+    .mortgage-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .mortgage-field label { display:block; font-size:0.83rem; font-weight:500; margin-bottom:6px; color:var(--color-foreground); }
+    .mortgage-field input[type=range] { width:100%; accent-color:var(--color-sage-deep); }
+    .mortgage-field .mortgage-value { font-size:0.83rem; color:var(--color-sage-deep); font-weight:600; }
+    .mortgage-result { background:var(--color-sage-ghost); border-radius:14px; padding:24px; margin-top:20px; text-align:center; }
+    .mortgage-result__amount { font-family:'Instrument Serif',serif; font-size:2.5rem; color:var(--color-sage-deep); line-height:1; margin-bottom:4px; }
+    .mortgage-result__label { font-size:0.83rem; color:var(--color-muted); margin-bottom:20px; }
+    .mortgage-breakdown { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; text-align:left; }
+    .mortgage-breakdown-item { font-size:0.78rem; }
+    .mortgage-breakdown-item .label { color:var(--color-muted); margin-bottom:2px; }
+    .mortgage-breakdown-item .value { font-weight:600; color:var(--color-foreground); font-size:0.95rem; }
+    .mortgage-disclaimer { font-size:0.75rem; color:var(--color-muted); margin-top:16px; line-height:1.5; }
+
     .apply-success {
       background:#DCFCE7; border:1px solid #BBF7D0; border-radius:12px;
       padding:16px 20px; font-size:0.88rem; color:#166534; margin-top:12px;
@@ -161,6 +196,7 @@
               <button class="tab-btn active" data-tab="about">About</button>
               <button class="tab-btn" data-tab="map">Location & map</button>
               <button class="tab-btn" data-tab="landlord">Landlord</button>
+              <button class="tab-btn" data-tab="mortgage" id="mortgage-tab-btn" style="display:none;">Mortgage calculator</button>
             </div>
 
             <!-- About tab -->
@@ -181,6 +217,54 @@
             </div>
 
             <!-- Landlord tab -->
+            <div class="tab-panel" id="tab-mortgage">
+              <div class="mortgage-calc">
+                <div class="mortgage-row">
+                  <div class="mortgage-field">
+                    <label>Property price</label>
+                    <div class="mortgage-value" id="mc-price-display">—</div>
+                  </div>
+                  <div class="mortgage-field">
+                    <label>Down payment: <span class="mortgage-value" id="mc-down-display">20%</span></label>
+                    <input type="range" id="mc-down" min="10" max="50" value="20" step="5" />
+                  </div>
+                </div>
+                <div class="mortgage-row">
+                  <div class="mortgage-field">
+                    <label>Interest rate: <span class="mortgage-value" id="mc-rate-display">13%</span></label>
+                    <input type="range" id="mc-rate" min="8" max="20" value="13" step="0.5" />
+                  </div>
+                  <div class="mortgage-field">
+                    <label>Loan term: <span class="mortgage-value" id="mc-term-display">20 years</span></label>
+                    <input type="range" id="mc-term" min="5" max="30" value="20" step="5" />
+                  </div>
+                </div>
+
+                <div class="mortgage-result">
+                  <div class="mortgage-result__amount" id="mc-monthly">KES 0</div>
+                  <div class="mortgage-result__label">Estimated monthly payment</div>
+                  <div class="mortgage-breakdown">
+                    <div class="mortgage-breakdown-item">
+                      <div class="label">Down payment</div>
+                      <div class="value" id="mc-down-amount">KES 0</div>
+                    </div>
+                    <div class="mortgage-breakdown-item">
+                      <div class="label">Loan amount</div>
+                      <div class="value" id="mc-loan-amount">KES 0</div>
+                    </div>
+                    <div class="mortgage-breakdown-item">
+                      <div class="label">Total interest</div>
+                      <div class="value" id="mc-total-interest">KES 0</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mortgage-disclaimer">
+                  This is an estimate only, based on typical Kenyan mortgage rates. Actual rates and terms vary by lender. Consult a bank or mortgage advisor for accurate figures. Homerr does not provide financial advice.
+                </div>
+              </div>
+            </div>
+
             <div class="tab-panel" id="tab-landlord">
               <div class="landlord-card">
                 <div class="landlord-avatar" id="ll-avatar">L</div>
@@ -198,6 +282,34 @@
                 </a>
               </div>
             </div>
+
+            <!-- Reviews section -->
+            <div class="reviews-section reveal" id="reviews-section">
+              <div class="reviews-title">
+                <span>Reviews</span>
+                <div class="avg-rating" id="avg-rating-display" style="display:none;">
+                  <span class="stars" id="avg-stars"></span>
+                  <span style="font-size:0.85rem;color:var(--color-muted);" id="avg-score"></span>
+                </div>
+              </div>
+              <div id="reviews-list"></div>
+              <div id="write-review-wrap" style="display:none;">
+                <div class="write-review">
+                  <div class="write-review__title">Leave a review</div>
+                  <div class="star-picker" id="star-picker">
+                    <span data-v="1">★</span>
+                    <span data-v="2">★</span>
+                    <span data-v="3">★</span>
+                    <span data-v="4">★</span>
+                    <span data-v="5">★</span>
+                  </div>
+                  <textarea class="review-input" id="review-comment" placeholder="Share your experience with this property…"></textarea>
+                  <button class="btn btn--primary btn--sm" id="submit-review" style="margin-top:10px;">Post review</button>
+                  <div id="review-feedback" style="margin-top:8px;font-size:0.83rem;"></div>
+                </div>
+              </div>
+            </div>
+
 
           </div>
 
@@ -271,7 +383,7 @@
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="static/js/api.js"></script>
+<script src="static/js/api.js?v=7"></script>
 <script src="static/js/main.js"></script>
 <script>
 (async () => {
@@ -447,9 +559,183 @@
       document.getElementById('inq-login-prompt').style.display = 'block';
     }
 
+
+    async function loadReviews(accId) {
+      try {
+        const res = await fetch(`http://localhost:5000/reviews/accommodation/${accId}`);
+        const reviews = await res.json();
+
+        const list = document.getElementById('reviews-list');
+        const avgEl = document.getElementById('avg-rating-display');
+        if (!list) return;
+
+        if (!reviews || !reviews.length) {
+          list.innerHTML = '<div style="font-size:0.85rem;color:var(--color-muted);padding:8px 0;">No reviews yet. Be the first to review this property.</div>';
+          return;
+        }
+
+        const avg = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+        document.getElementById('avg-stars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
+        document.getElementById('avg-score').textContent = `${avg} · ${reviews.length} review${reviews.length > 1 ? 's' : ''}`;
+        if (avgEl) avgEl.style.display = 'flex';
+
+        list.innerHTML = reviews.map(r => `
+          <div class="review-card">
+            <div class="review-card__header">
+              <div class="review-avatar">${(r.reviewer_name||'?')[0].toUpperCase()}</div>
+              <div>
+                <div class="review-card__name">${r.reviewer_name || 'Tenant'}</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div class="review-card__stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                  <div class="review-card__date">${new Date(r.created_at).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'})}</div>
+                </div>
+              </div>
+            </div>
+            <div class="review-card__comment">${r.comment}</div>
+          </div>`).join('');
+
+        if (Auth.isLoggedIn() && Auth.getRole() === 'user') {
+          const wrap = document.getElementById('write-review-wrap');
+          if (wrap) wrap.style.display = 'block';
+        }
+      } catch(e) { console.error('Reviews failed:', e); }
+    }
+
+    let selectedRating = 0;
+    document.querySelectorAll('.star-picker span').forEach(star => {
+      star.addEventListener('mouseover', () => {
+        const v = parseInt(star.dataset.v);
+        document.querySelectorAll('.star-picker span').forEach(s => {
+          s.classList.toggle('active', parseInt(s.dataset.v) <= v);
+        });
+      });
+      star.addEventListener('click', () => { selectedRating = parseInt(star.dataset.v); });
+    });
+    document.querySelector('.star-picker')?.addEventListener('mouseleave', () => {
+      document.querySelectorAll('.star-picker span').forEach(s => {
+        s.classList.toggle('active', parseInt(s.dataset.v) <= selectedRating);
+      });
+    });
+
+    document.getElementById('submit-review')?.addEventListener('click', async () => {
+      const btn = document.getElementById('submit-review');
+      const feedback = document.getElementById('review-feedback');
+      const comment = document.getElementById('review-comment').value.trim();
+      if (!selectedRating) { feedback.textContent = 'Please select a star rating.'; feedback.style.color='#DC2626'; return; }
+      if (!comment) { feedback.textContent = 'Please write a comment.'; feedback.style.color='#DC2626'; return; }
+      btn.disabled = true; btn.textContent = 'Posting…';
+      try {
+        await fetch('http://localhost:5000/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${Auth.getToken()}` },
+          body: JSON.stringify({ target_id: parseInt(id), target_type: 'accommodation', rating: selectedRating, comment })
+        });
+        feedback.textContent = '✓ Review posted.'; feedback.style.color='#166534';
+        document.getElementById('review-comment').value = '';
+        selectedRating = 0;
+        document.querySelectorAll('.star-picker span').forEach(s => s.classList.remove('active'));
+    
+    // Mortgage calculator (buy listings only)
+    if (p.availability_option === 'buy' || p.availability_option === 'both') {
+      const tabBtn = document.getElementById('mortgage-tab-btn');
+      if (tabBtn) tabBtn.style.display = 'block';
+
+      const price = Number(p.price);
+      document.getElementById('mc-price-display').textContent = `KES ${price.toLocaleString()}`;
+
+      function calculateMortgage() {
+        const downPct = parseFloat(document.getElementById('mc-down').value);
+        const rate = parseFloat(document.getElementById('mc-rate').value);
+        const years = parseFloat(document.getElementById('mc-term').value);
+
+        document.getElementById('mc-down-display').textContent = `${downPct}%`;
+        document.getElementById('mc-rate-display').textContent = `${rate}%`;
+        document.getElementById('mc-term-display').textContent = `${years} years`;
+
+        const downAmount = price * (downPct / 100);
+        const loanAmount = price - downAmount;
+        const monthlyRate = (rate / 100) / 12;
+        const numPayments = years * 12;
+
+        let monthlyPayment = 0;
+        if (monthlyRate > 0) {
+          monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+        } else {
+          monthlyPayment = loanAmount / numPayments;
+        }
+
+        const totalPaid = monthlyPayment * numPayments;
+        const totalInterest = totalPaid - loanAmount;
+
+        document.getElementById('mc-monthly').textContent = `KES ${Math.round(monthlyPayment).toLocaleString()}`;
+        document.getElementById('mc-down-amount').textContent = `KES ${Math.round(downAmount).toLocaleString()}`;
+        document.getElementById('mc-loan-amount').textContent = `KES ${Math.round(loanAmount).toLocaleString()}`;
+        document.getElementById('mc-total-interest').textContent = `KES ${Math.round(totalInterest).toLocaleString()}`;
+      }
+
+      ['mc-down', 'mc-rate', 'mc-term'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', calculateMortgage);
+      });
+
+      calculateMortgage();
+    }
+
+    loadReviews(id);
+      } catch(e) {
+        feedback.textContent = e.message; feedback.style.color='#DC2626';
+      } finally { btn.disabled=false; btn.textContent='Post review'; }
+    });
+
     skeletonEl.style.display = 'none';
     contentEl.style.display  = 'block';
     initReveal();
+
+    // Mortgage calculator (buy listings only)
+    if (p.availability_option === 'buy' || p.availability_option === 'both') {
+      const tabBtn = document.getElementById('mortgage-tab-btn');
+      if (tabBtn) tabBtn.style.display = 'block';
+
+      const price = Number(p.price);
+      document.getElementById('mc-price-display').textContent = `KES ${price.toLocaleString()}`;
+
+      function calculateMortgage() {
+        const downPct = parseFloat(document.getElementById('mc-down').value);
+        const rate = parseFloat(document.getElementById('mc-rate').value);
+        const years = parseFloat(document.getElementById('mc-term').value);
+
+        document.getElementById('mc-down-display').textContent = `${downPct}%`;
+        document.getElementById('mc-rate-display').textContent = `${rate}%`;
+        document.getElementById('mc-term-display').textContent = `${years} years`;
+
+        const downAmount = price * (downPct / 100);
+        const loanAmount = price - downAmount;
+        const monthlyRate = (rate / 100) / 12;
+        const numPayments = years * 12;
+
+        let monthlyPayment = 0;
+        if (monthlyRate > 0) {
+          monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+        } else {
+          monthlyPayment = loanAmount / numPayments;
+        }
+
+        const totalPaid = monthlyPayment * numPayments;
+        const totalInterest = totalPaid - loanAmount;
+
+        document.getElementById('mc-monthly').textContent = `KES ${Math.round(monthlyPayment).toLocaleString()}`;
+        document.getElementById('mc-down-amount').textContent = `KES ${Math.round(downAmount).toLocaleString()}`;
+        document.getElementById('mc-loan-amount').textContent = `KES ${Math.round(loanAmount).toLocaleString()}`;
+        document.getElementById('mc-total-interest').textContent = `KES ${Math.round(totalInterest).toLocaleString()}`;
+      }
+
+      ['mc-down', 'mc-rate', 'mc-term'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', calculateMortgage);
+      });
+
+      calculateMortgage();
+    }
+
+    loadReviews(id);
 
   } catch(err) {
     console.error(err);

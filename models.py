@@ -634,16 +634,17 @@ def update_provider_location(user_id, lat, lng):
 # ─────────────────────────────────────────────
 
 def create_job(tenant_id, category, description,
-               address=None, urgency='normal', accommodation_id=None):
+               address=None, urgency='normal', accommodation_id=None,
+               lat=None, lng=None):
     with db_cursor(commit=True) as (conn, cur):
         cur.execute("""
             INSERT INTO fix_jobs (
                 tenant_id, category, description,
-                address, urgency, accommodation_id, status
-            ) VALUES (%s,%s,%s,%s,%s,%s,'open')
+                address, urgency, accommodation_id, status, lat, lng
+            ) VALUES (%s,%s,%s,%s,%s,%s,'open',%s,%s)
             RETURNING *
         """, (tenant_id, category, description,
-              address, urgency, accommodation_id))
+              address, urgency, accommodation_id, lat, lng))
         return cur.fetchone()
 
 
@@ -658,11 +659,43 @@ def accept_job(job_id, provider_user_id):
             UPDATE fix_jobs SET provider_id=%s, status='accepted', updated_at=NOW()
             WHERE id=%s AND status='open'
             RETURNING *
-        """, (provider_user_id, job_id))
+        """, (sp['id'], job_id))
         return cur.fetchone()
 
 
-def get_open_jobs(category=None):
+def get_category_price_range(category):
+    with db_cursor() as (conn, cur):
+        cur.execute("""
+            SELECT MIN(base_price) AS min_price, MAX(base_price) AS max_price,
+                   COUNT(*) AS provider_count
+            FROM service_providers
+            WHERE category=%s AND is_verified=TRUE AND base_price IS NOT NULL
+        """, (category,))
+        return cur.fetchone()
+
+
+def set_provider_online(user_id, is_online):
+    with db_cursor(commit=True) as (conn, cur):
+        cur.execute("""
+            UPDATE service_providers SET is_online=%s
+            WHERE user_id=%s RETURNING id, is_online
+        """, (is_online, user_id))
+        return cur.fetchone()
+
+
+import math
+
+def _haversine_km(lat1, lng1, lat2, lng2):
+    if None in (lat1, lng1, lat2, lng2):
+        return None
+    R = 6371.0
+    phi1, phi2 = math.radians(float(lat1)), math.radians(float(lat2))
+    dphi = math.radians(float(lat2) - float(lat1))
+    dlambda = math.radians(float(lng2) - float(lng1))
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+def get_open_jobs(category=None, provider_lat=None, provider_lng=None):
     with db_cursor() as (conn, cur):
         q = """
             SELECT j.*, u.name AS tenant_name, a.name AS property_name,
@@ -678,7 +711,29 @@ def get_open_jobs(category=None):
             params.append(category)
         q += " ORDER BY CASE j.urgency WHEN 'emergency' THEN 1 WHEN 'urgent' THEN 2 ELSE 3 END, j.created_at DESC"
         cur.execute(q, params)
-        return cur.fetchall()
+        jobs = cur.fetchall()
+
+    jobs = [dict(j) for j in jobs]
+    if provider_lat is not None and provider_lng is not None:
+        for j in jobs:
+            dist = _haversine_km(provider_lat, provider_lng, j.get('lat'), j.get('lng'))
+            j['distance_km'] = round(dist, 1) if dist is not None else None
+            j['eta_minutes'] = round((dist / 25) * 60) if dist is not None else None
+        jobs.sort(key=lambda j: (
+            {'emergency': 0, 'urgent': 1}.get(j.get('urgency'), 2),
+            j['distance_km'] if j['distance_km'] is not None else 9999
+        ))
+    return jobs
+
+def mark_job_seen(job_id, provider_user_id):
+    with db_cursor(commit=True) as (conn, cur):
+        cur.execute("""
+            UPDATE fix_jobs SET seen_by_provider=TRUE
+            WHERE id=%s AND provider_id=%s
+            RETURNING id
+        """, (job_id, provider_user_id))
+        return cur.fetchone()
+
 
 def update_job_status(job_id, status, provider_id):
     """status: pending|accepted|en_route|arrived|in_progress|completed|cancelled"""
@@ -696,10 +751,11 @@ def get_tenant_jobs(tenant_id):
             SELECT j.*,
                    u.name AS provider_name,
                    sp.business_name, sp.avg_rating AS provider_rating,
-                   sp.phone AS provider_phone
+                   u.phone AS provider_phone,
+                   sp.current_lat, sp.current_lng
             FROM fix_jobs j
-            LEFT JOIN users u ON j.provider_id = u.id
-            LEFT JOIN service_providers sp ON sp.user_id = j.provider_id
+            LEFT JOIN service_providers sp ON sp.id = j.provider_id
+            LEFT JOIN users u ON u.id = sp.user_id
             WHERE j.tenant_id = %s
             ORDER BY j.created_at DESC
         """, (tenant_id,))
@@ -708,11 +764,20 @@ def get_tenant_jobs(tenant_id):
 def get_provider_jobs(user_id):
     with db_cursor() as (conn, cur):
         cur.execute("""
-            SELECT j.*, u.name AS tenant_name, u.email AS tenant_email
+            SELECT j.*, u.name AS tenant_name, u.email AS tenant_email,
+                   CASE j.urgency
+                       WHEN 'emergency' THEN 0
+                       WHEN 'urgent' THEN 1
+                       ELSE 2
+                   END AS urgency_rank
             FROM fix_jobs j
             JOIN users u ON j.tenant_id = u.id
-            WHERE j.provider_id = %s
-            ORDER BY j.created_at DESC
+            JOIN service_providers sp ON sp.id = j.provider_id
+            WHERE sp.user_id = %s
+            ORDER BY
+                CASE j.status WHEN 'pending' THEN 0 ELSE 1 END,
+                urgency_rank ASC,
+                j.created_at ASC
         """, (user_id,))
         return cur.fetchall()
 

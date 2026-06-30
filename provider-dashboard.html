@@ -96,6 +96,17 @@
 
     <!-- OVERVIEW -->
     <div class="section active" id="tab-overview">
+      <div class="card" id="online-toggle-card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:16px 20px;">
+        <div>
+          <div style="font-weight:600;font-size:0.92rem;" id="online-status-label">You're offline</div>
+          <div style="font-size:0.78rem;color:var(--color-muted);margin-top:2px;">Go online to appear in distance-matched job requests</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;">
+          <input type="checkbox" id="online-toggle" style="opacity:0;width:0;height:0;">
+          <span id="online-toggle-track" style="position:absolute;cursor:pointer;inset:0;background:#D1D5DB;border-radius:26px;transition:0.2s;"></span>
+          <span id="online-toggle-knob" style="position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+        </label>
+      </div>
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-card__value" id="stat-open">—</div>
@@ -174,7 +185,7 @@
   </main>
 </div>
 
-<script src="static/js/api.js"></script>
+<script src="static/js/api.js?v=3"></script>
 <script>
 (() => {
   if (!requireRole('service_provider', 'login.html')) return;
@@ -204,6 +215,9 @@
   }
 
   function renderOpenJob(j, showAccept=true) {
+    const distanceLine = (j.distance_km !== undefined && j.distance_km !== null)
+      ? `<span style="color:var(--color-sage-deep);font-weight:600;">📍 ${j.distance_km} km away · ~${j.eta_minutes} min</span>`
+      : '';
     return `
       <div class="job-card">
         <div class="job-card__header">
@@ -219,6 +233,7 @@
           ${j.address ? `<span>📍 ${j.address}</span>` : ''}
           <span>🕐 ${new Date(j.created_at).toLocaleDateString('en-KE',{day:'numeric',month:'short'})}</span>
         </div>
+        ${distanceLine ? `<div class="job-card__meta" style="margin-top:4px;">${distanceLine}</div>` : ''}
         ${showAccept ? `<div class="job-card__actions"><button class="btn btn--primary btn--sm" onclick="acceptJob(${j.id}, this)">Accept job</button></div>` : ''}
       </div>`;
   }
@@ -250,9 +265,11 @@
     btn.textContent = 'Accepting…';
     try {
       await apiFetch(`/jobs/${id}/accept`, { method: 'POST' });
+      await apiFetch(`/jobs/${id}/seen`, { method: 'PATCH' }).catch(() => {});
       btn.closest('.job-card').style.opacity = '0.5';
       btn.textContent = 'Accepted ✓';
       loadAll();
+      updateLocationTracking();
     } catch(e) {
       btn.disabled = false;
       btn.textContent = 'Accept job';
@@ -265,18 +282,124 @@
     try {
       await apiFetch(`/jobs/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
       loadAll();
+      updateLocationTracking();
     } catch(e) {
       btn.disabled = false;
       alert(e.message);
     }
   };
 
+  // ── Live location tracking ──────────────────────────────────────────
+  let watchId = null;
+  let locationPushInterval = null;
+  let lastKnownPosition = null;
+
+  function pushLocation() {
+    if (!lastKnownPosition) return;
+    apiFetch('/providers/location', {
+      method: 'PATCH',
+      body: JSON.stringify({ lat: lastKnownPosition.lat, lng: lastKnownPosition.lng })
+    }).catch(() => {});
+  }
+
+  function startLocationTracking() {
+    if (watchId !== null) return;
+    if (!('geolocation' in navigator)) return;
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        lastKnownPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      },
+      (err) => { console.warn('Location error:', err.message); },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+    if (!locationPushInterval) {
+      locationPushInterval = setInterval(pushLocation, 8000);
+    }
+  }
+
+  function stopLocationTracking() {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    if (locationPushInterval) {
+      clearInterval(locationPushInterval);
+      locationPushInterval = null;
+    }
+  }
+
+  async function updateLocationTracking() {
+    try {
+      const myJobs = await apiFetch('/jobs').catch(() => []);
+      const hasActiveJob = (myJobs||[]).some(j =>
+        ['accepted','en_route','in_progress'].includes(j.status)
+      );
+      if (hasActiveJob) startLocationTracking();
+      else stopLocationTracking();
+    } catch(e) {}
+  }
+
+  let knownOpenJobIds = new Set();
+  let notifiedOnce = false;
+
+  function playNotifySound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = 880;
+      g.gain.setValueAtTime(0.15, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      o.start(); o.stop(ctx.currentTime + 0.4);
+    } catch(e) {}
+  }
+
+  function showNewJobBanner(job) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1000;background:#1A1A1A;color:#fff;padding:14px 22px;border-radius:12px;font-size:0.86rem;box-shadow:0 8px 28px rgba(0,0,0,0.25);display:flex;align-items:center;gap:12px;cursor:pointer;';
+    const urgencyTag = job.urgency === 'emergency' ? '🚨 Emergency' : job.urgency === 'urgent' ? '⚡ Urgent' : 'New';
+    banner.innerHTML = `<span>${urgencyTag} job: <strong>${job.category.replace(/_/g,' ')}</strong></span><span style="opacity:0.7;font-size:0.78rem;">tap to view</span>`;
+    banner.addEventListener('click', () => {
+      document.querySelector('.nav-item[data-tab="open"]')?.click();
+      banner.remove();
+    });
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 8000);
+  }
+
+  function notifyNewJob(job) {
+    playNotifySound();
+    showNewJobBanner(job);
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const n = new Notification('New HomerrFix job', {
+        body: `${job.category.replace(/_/g,' ')} — ${job.urgency !== 'normal' ? job.urgency.toUpperCase() : 'standard'}`,
+      });
+      n.onclick = () => { window.focus(); n.close(); };
+    }
+  }
+
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
   async function loadAll() {
     try {
+      const locParams = lastKnownPosition
+        ? `?lat=${lastKnownPosition.lat}&lng=${lastKnownPosition.lng}`
+        : '';
       const [openJobs, myJobs] = await Promise.all([
-        apiFetch('/jobs/open').catch(() => []),
+        apiFetch(`/jobs/open${locParams}`).catch(() => []),
         apiFetch('/jobs').catch(() => []),
       ]);
+
+      if (notifiedOnce) {
+        (openJobs||[]).forEach(j => {
+          if (!knownOpenJobIds.has(j.id)) notifyNewJob(j);
+        });
+      }
+      knownOpenJobIds = new Set((openJobs||[]).map(j => j.id));
+      notifiedOnce = true;
 
       const active = (myJobs||[]).filter(j => j.status !== 'completed');
       const done = (myJobs||[]).filter(j => j.status === 'completed');
@@ -341,7 +464,50 @@
     if (p.bio) document.getElementById('p-bio').value = p.bio;
   }).catch(() => {});
 
+  // ── Online toggle ────────────────────────────────────────────────
+  function paintToggle(isOnline) {
+    const track = document.getElementById('online-toggle-track');
+    const knob = document.getElementById('online-toggle-knob');
+    const label = document.getElementById('online-status-label');
+    if (isOnline) {
+      track.style.background = '#2D5A3D';
+      knob.style.transform = 'translateX(22px)';
+      label.textContent = "You're online";
+    } else {
+      track.style.background = '#D1D5DB';
+      knob.style.transform = 'translateX(0)';
+      label.textContent = "You're offline";
+    }
+  }
+
+  document.getElementById('online-toggle')?.addEventListener('change', async (e) => {
+    const wantOnline = e.target.checked;
+    paintToggle(wantOnline);
+    try {
+      await apiFetch('/providers/online', {
+        method: 'PATCH',
+        body: JSON.stringify({ is_online: wantOnline })
+      });
+      if (wantOnline) {
+        startLocationTracking();
+      } else {
+        stopLocationTracking();
+      }
+    } catch(err) {
+      e.target.checked = !wantOnline;
+      paintToggle(!wantOnline);
+      alert(err.message);
+    }
+  });
+
+  document.getElementById('online-toggle-track')?.addEventListener('click', () => {
+    const cb = document.getElementById('online-toggle');
+    cb.checked = !cb.checked;
+    cb.dispatchEvent(new Event('change'));
+  });
+
   loadAll();
+  setInterval(loadAll, 6000);
 })();
 </script>
 </body>

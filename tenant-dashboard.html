@@ -102,6 +102,22 @@
       .stat-grid { grid-template-columns:repeat(2,1fr); }
       .nav-item { white-space:nowrap; }
     }
+
+    .hf-categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 24px; }
+    .hf-category-card { background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); border:2px solid var(--color-border); border-radius:14px; padding:16px 12px; text-align:center; cursor:pointer; transition:border-color 0.15s, background 0.15s; }
+    .hf-category-card:hover { border-color: var(--color-sage-mid); }
+    .hf-category-card.selected { border-color: var(--color-sage-deep); background: var(--color-sage-ghost); }
+    .hf-category-card__icon { font-size:1.6rem; margin-bottom:6px; }
+    .hf-category-card__name { font-size:0.78rem; font-weight:600; color:var(--color-foreground); }
+    .hf-urgency-row { display:flex; gap:8px; }
+    .hf-urgency-btn { flex:1; padding:10px; border:2px solid var(--color-border); border-radius:10px; font-size:0.8rem; font-weight:500; cursor:pointer; background:white; transition:border-color 0.15s, background 0.15s; text-align:center; }
+    .hf-urgency-btn.selected { border-color:var(--color-sage-deep); background:var(--color-sage-ghost); color:var(--color-sage-deep); }
+    .hf-job-card { background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); border:1px solid var(--color-border); border-radius:16px; padding:18px 20px; margin-bottom:10px; }
+    .hf-job-status { padding:3px 12px; border-radius:20px; font-size:0.75rem; font-weight:500; }
+    .hf-status-open { background:#DBEAFE; color:#1E40AF; }
+    .hf-status-accepted { background:#DCFCE7; color:#166534; }
+    .hf-status-completed { background:#F3F4F6; color:#374151; }
+
   </style>
 </head>
 <body>
@@ -139,6 +155,10 @@
     <button class="nav-item" data-tab="messages">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Messages
+    </button>
+    <button class="nav-item" data-tab="homerrfix">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      HomerrFix
     </button>
     <div style="margin-top:auto;padding-top:24px;border-top:1px solid var(--color-border);margin-top:32px;">
       <button class="nav-item" id="logout-sidebar">
@@ -196,6 +216,54 @@
       </div>
     </div>
 
+    <!-- HOMERRFIX -->
+    <div class="section" id="tab-homerrfix">
+      <div class="section-title">Request a service</div>
+      <div class="hf-categories-grid" id="hf-categories">
+        <div class="hf-category-card" data-value="plumbing"><div class="hf-category-card__icon">🔧</div><div class="hf-category-card__name">Plumbing</div></div>
+        <div class="hf-category-card" data-value="electrical"><div class="hf-category-card__icon">⚡</div><div class="hf-category-card__name">Electrical</div></div>
+        <div class="hf-category-card" data-value="fumigation"><div class="hf-category-card__icon">🦟</div><div class="hf-category-card__name">Fumigation</div></div>
+        <div class="hf-category-card" data-value="cleaning"><div class="hf-category-card__icon">🧹</div><div class="hf-category-card__name">Cleaning</div></div>
+        <div class="hf-category-card" data-value="painting"><div class="hf-category-card__icon">🎨</div><div class="hf-category-card__name">Painting</div></div>
+        <div class="hf-category-card" data-value="carpentry"><div class="hf-category-card__icon">🪚</div><div class="hf-category-card__name">Carpentry</div></div>
+        <div class="hf-category-card" data-value="appliance_repair"><div class="hf-category-card__icon">🏠</div><div class="hf-category-card__name">Appliances</div></div>
+        <div class="hf-category-card" data-value="other"><div class="hf-category-card__icon">🛠️</div><div class="hf-category-card__name">Other</div></div>
+      </div>
+      <div id="hf-price-hint" style="display:none;font-size:0.83rem;color:var(--color-sage-deep);background:var(--color-sage-ghost);border-radius:10px;padding:10px 14px;margin-bottom:16px;"></div>
+      <div style="display:none;" id="__hf_grid_close_marker"></div>
+      </div>
+
+      <div class="card">
+        <div class="form-field">
+          <label>Selected service</label>
+          <input class="form-input" id="hf-selected-category" readonly placeholder="Choose a category above" style="background:var(--color-sage-ghost);cursor:default;" />
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <textarea class="form-input" id="hf-job-desc" rows="3" placeholder="e.g. Leaking pipe under the kitchen sink..." style="resize:vertical;"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Your address (optional)</label>
+          <input class="form-input" id="hf-job-address" placeholder="e.g. Apt 4B, Kilimani Apartments" />
+        </div>
+        <div class="form-field">
+          <label>Urgency</label>
+          <div class="hf-urgency-row">
+            <button class="hf-urgency-btn selected" data-value="normal">Normal</button>
+            <button class="hf-urgency-btn" data-value="urgent">Urgent</button>
+            <button class="hf-urgency-btn" data-value="emergency">Emergency</button>
+          </div>
+        </div>
+        <button class="btn btn--primary" id="hf-submit-job" style="width:100%;justify-content:center;margin-top:8px;">Post job request</button>
+        <div id="hf-job-feedback" style="margin-top:10px;font-size:0.83rem;"></div>
+      </div>
+
+      <div class="section-title" style="margin-top:32px;">Your requests</div>
+      <div id="hf-jobs-list">
+        <div class="card skeleton sk-card"></div>
+      </div>
+    </div>
+
     <!-- MESSAGES -->
     <div class="section" id="tab-messages">
       <div class="section-title">Messages</div>
@@ -226,7 +294,7 @@
   </div>
 </div>
 
-<script src="static/js/api.js"></script>
+<script src="static/js/api.js?v=8"></script>
 <script>
 (() => {
   if (!requireAuth()) return;
@@ -392,7 +460,134 @@
     } catch(e) {}
   }
 
+
+  // ── HomerrFix ──────────────────────────────────────────────────────
+  const categoryIcons = { plumbing:'\u{1f527}', electrical:'\u26a1', fumigation:'\u{1f99f}', cleaning:'\u{1f9f9}', painting:'\u{1f3a8}', carpentry:'\u{1fa9a}', appliance_repair:'\u{1f3e0}', security:'\u{1f512}', other:'\u{1f6e0}\ufe0f' };
+
+  let hfSelectedCategory = '';
+  let hfSelectedUrgency = 'normal';
+
+  document.querySelectorAll('.hf-category-card').forEach(card => {
+    card.addEventListener('click', async () => {
+      document.querySelectorAll('.hf-category-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      hfSelectedCategory = card.dataset.value;
+      document.getElementById('hf-selected-category').value = card.querySelector('.hf-category-card__name').textContent;
+
+      const hint = document.getElementById('hf-price-hint');
+      hint.style.display = 'block';
+      hint.textContent = 'Checking typical pricing…';
+      try {
+        const range = await window.apiFetch(`/providers/price-range/${hfSelectedCategory}`);
+        if (range && range.min_price != null) {
+          const min = Math.round(range.min_price).toLocaleString();
+          const max = Math.round(range.max_price).toLocaleString();
+          hint.textContent = range.min_price === range.max_price
+            ? `💰 Typical price: KES ${min} (${range.provider_count} provider${range.provider_count!==1?'s':''} nearby)`
+            : `💰 Typical price range: KES ${min} – ${max} (${range.provider_count} provider${range.provider_count!==1?'s':''} nearby)`;
+        } else {
+          hint.textContent = '💰 No pricing data yet for this category — you\'ll get a quote once a provider accepts.';
+        }
+      } catch(e) {
+        hint.style.display = 'none';
+      }
+    });
+  });
+
+  document.querySelectorAll('.hf-urgency-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.hf-urgency-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      hfSelectedUrgency = btn.dataset.value;
+    });
+  });
+
+  document.getElementById('hf-submit-job')?.addEventListener('click', async () => {
+    const btn = document.getElementById('hf-submit-job');
+    const feedback = document.getElementById('hf-job-feedback');
+    const desc = document.getElementById('hf-job-desc').value.trim();
+    const address = document.getElementById('hf-job-address').value.trim();
+
+    if (!hfSelectedCategory) { feedback.innerHTML = '<span style="color:#DC2626;">Please select a service category.</span>'; return; }
+    if (!desc) { feedback.innerHTML = '<span style="color:#DC2626;">Please describe the job.</span>'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Posting\u2026';
+    try {
+      await window.apiFetch('/jobs', {
+        method: 'POST',
+        body: JSON.stringify({ category: hfSelectedCategory, description: desc, address, urgency: hfSelectedUrgency })
+      });
+      btn.textContent = 'Post job request';
+      btn.disabled = false;
+      document.getElementById('hf-job-desc').value = '';
+      document.getElementById('hf-job-address').value = '';
+      feedback.innerHTML = '<span style="color:#166534;">\u2713 Your request has been posted.</span>';
+      loadHfJobs();
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Post job request';
+      feedback.innerHTML = `<span style="color:#DC2626;">${e.message}</span>`;
+    }
+  });
+
+  function hfStatusBadge(status) {
+    const map = { open:'hf-status-open', accepted:'hf-status-accepted', en_route:'hf-status-accepted', in_progress:'hf-status-accepted', completed:'hf-status-completed' };
+    return `<span class="hf-job-status ${map[status]||'hf-status-open'}">${status.replace(/_/g,' ')}</span>`;
+  }
+
+  async function loadHfJobs() {
+    const list = document.getElementById('hf-jobs-list');
+    if (!list) return;
+    try {
+      const jobs = await window.apiFetch('/jobs');
+      if (!jobs || !jobs.length) {
+        list.innerHTML = '<div class="empty"><div class="empty__icon">\u{1f527}</div>No job requests yet. Post one above.</div>';
+        return;
+      }
+      function haversineKm(lat1, lng1, lat2, lng2) {
+        if (lat1==null||lng1==null||lat2==null||lng2==null) return null;
+        const R = 6371;
+        const dLat = (lat2-lat1) * Math.PI/180;
+        const dLng = (lng2-lng1) * Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      }
+
+      list.innerHTML = jobs.map(j => {
+        let trackerHtml = '';
+        if (['accepted','en_route'].includes(j.status) && j.current_lat && j.current_lng && j.lat && j.lng) {
+          const dist = haversineKm(j.current_lat, j.current_lng, j.lat, j.lng);
+          const eta = Math.round((dist/25)*60);
+          trackerHtml = `
+            <div style="margin-top:10px;padding:12px 14px;background:#1A1A1A;border-radius:10px;color:#fff;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:0.72rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">${j.status === 'en_route' ? 'On the way' : 'Heading your way soon'}</div>
+                <div style="font-size:1.1rem;font-weight:700;margin-top:2px;">~${eta} min away</div>
+              </div>
+              <div style="text-align:right;font-size:0.8rem;opacity:0.85;">${dist.toFixed(1)} km</div>
+            </div>`;
+        }
+        return `
+        <div class="hf-job-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+            <div style="font-weight:600;font-size:0.9rem;">${categoryIcons[j.category]||'\u{1f6e0}\ufe0f'} ${j.category.replace(/_/g,' ')}</div>
+            ${hfStatusBadge(j.status)}
+          </div>
+          <div style="font-size:0.85rem;color:var(--color-muted);margin-bottom:8px;">${j.description}</div>
+          <div style="font-size:0.78rem;color:var(--color-muted);">${j.address ? '\u{1f4cd} ' + j.address + ' \u00b7 ' : ''}${new Date(j.created_at).toLocaleDateString('en-KE',{day:'numeric',month:'short'})}</div>
+          ${j.provider_name ? `<div style="margin-top:10px;padding:10px 14px;background:var(--color-sage-ghost);border-radius:10px;font-size:0.83rem;">\u{1f477} <strong>${j.provider_name}</strong> is handling your request.</div>` : ''}
+          ${trackerHtml}
+        </div>`;
+      }).join('');
+    } catch(e) {
+      list.innerHTML = '<div class="empty"><div class="empty__icon">\u26a0\ufe0f</div>Could not load requests.</div>';
+    }
+  }
+
+  loadHfJobs();
   loadAll();
+  setInterval(loadHfJobs, 6000);
 })();
 </script>
 </body>

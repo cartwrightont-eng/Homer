@@ -24,3 +24,5 @@ app.py.bak
 
 # OS
 .DS_Store
+add_*.py
+.vscode/

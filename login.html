@@ -97,7 +97,7 @@
   </div>
 </div>
 
-<script src="static/js/api.js"></script>
+<script src="static/js/api.js?v=3"></script>
 <script>
 (() => {
   // Redirect if already logged in
@@ -161,6 +161,7 @@
       const role = res.user?.role;
       if (role === 'admin')    window.location.href = 'landlord-dashboard.html';
       else if (role === 'landlord') window.location.href = 'landlord-dashboard.html';
+      else if (role === 'service_provider') window.location.href = 'provider-dashboard.html';
       else window.location.href = 'listings.html';
 
     } catch (err) {

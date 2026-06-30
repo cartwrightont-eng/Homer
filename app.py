@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_jwt_extended import (
     JWTManager, create_access_token,
     jwt_required, get_jwt_identity, get_jwt,
@@ -10,6 +12,7 @@ import models
 from config import JWT_SECRET_KEY
 
 app = Flask(__name__)
+limiter = Limiter(get_remote_address, app=app, default_limits=[])
 app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -63,6 +66,7 @@ def register():
 
 
 @app.route("/login", methods=["POST"])
+@limiter.limit("10 per minute")
 def login():
     data = request.get_json() or {}
     user = models.authenticate_user(data.get("email"), data.get("password"))
@@ -497,8 +501,28 @@ def create_job():
         address=data.get("address"),
         urgency=data.get("urgency", "normal"),
         accommodation_id=data.get("accommodation_id"),
+        lat=data.get("lat"),
+        lng=data.get("lng"),
     )
     return jsonify(dict(result)), 201
+
+
+@app.route("/providers/online", methods=["PATCH"])
+@role_required("service_provider")
+def toggle_provider_online():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    is_online = bool(data.get("is_online", False))
+    result = models.set_provider_online(user_id, is_online)
+    if not result:
+        return jsonify({"error": "Provider profile not found"}), 404
+    return jsonify(dict(result)), 200
+
+
+@app.route("/providers/price-range/<category>", methods=["GET"])
+def category_price_range(category):
+    result = models.get_category_price_range(category)
+    return jsonify(dict(result) if result else {}), 200
 
 
 @app.route("/jobs/<int:job_id>/accept", methods=["POST"])
@@ -515,8 +539,10 @@ def accept_job(job_id):
 @role_required("service_provider")
 def open_jobs():
     category = request.args.get("category")
-    jobs = models.get_open_jobs(category)
-    return jsonify([dict(j) for j in jobs]), 200
+    lat = request.args.get("lat", type=float)
+    lng = request.args.get("lng", type=float)
+    jobs = models.get_open_jobs(category, provider_lat=lat, provider_lng=lng)
+    return jsonify(jobs), 200
 
 
 @app.route("/jobs", methods=["GET"])
@@ -529,6 +555,16 @@ def list_jobs():
     else:
         jobs = models.get_tenant_jobs(user_id)
     return jsonify([dict(j) for j in jobs]), 200
+
+
+@app.route("/jobs/<int:job_id>/seen", methods=["PATCH"])
+@role_required("service_provider")
+def mark_job_seen(job_id):
+    user_id = int(get_jwt_identity())
+    result = models.mark_job_seen(job_id, user_id)
+    if not result:
+        return jsonify({"error": "Not found or not authorised"}), 404
+    return jsonify({"marked_seen": True}), 200
 
 
 @app.route("/jobs/<int:job_id>/status", methods=["PATCH"])

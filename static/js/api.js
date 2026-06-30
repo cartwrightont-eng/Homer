@@ -2,7 +2,7 @@
    HOMERR — API Client v2
    ============================================ */
 
-const API_BASE = '';
+const API_BASE = 'http://localhost:5000';
 
 const Auth = {
   getToken:     ()              => localStorage.getItem('homerr_token'),
@@ -179,7 +179,7 @@ function initNav() {
   if (!actionsEl) return;
   if (Auth.isLoggedIn()) {
     const user = Auth.getUser();
-    const dashHref = user?.role === 'landlord' ? 'landlord-dashboard.html' : 'tenant-dashboard.html';
+    const dashHref = user?.role === 'landlord' ? 'landlord-dashboard.html' : user?.role === 'service_provider' ? 'provider-dashboard.html' : 'tenant-dashboard.html';
     actionsEl.innerHTML = `
       <a href="${dashHref}" class="btn btn--ghost">Dashboard</a>
       <button class="btn btn--primary" id="logout-btn">Sign out</button>`;

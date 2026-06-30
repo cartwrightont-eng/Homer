@@ -1355,8 +1355,8 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 
 .role-selector {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
   margin-bottom: 28px;
 }
 
