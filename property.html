@@ -195,6 +195,7 @@
             <div class="tab-bar reveal">
               <button class="tab-btn active" data-tab="about">About</button>
               <button class="tab-btn" data-tab="map">Location & map</button>
+              <button class="tab-btn" data-tab="tour" id="tour-tab-btn" style="display:none;">🎥 Virtual tour</button>
               <button class="tab-btn" data-tab="landlord">Landlord</button>
               <button class="tab-btn" data-tab="mortgage" id="mortgage-tab-btn" style="display:none;">Mortgage calculator</button>
             </div>
@@ -209,6 +210,19 @@
             </div>
 
             <!-- Map tab -->
+            <div class="tab-panel" id="tab-tour" style="display:none;">
+              <div id="tour-container" style="width:100%;border-radius:16px;overflow:hidden;background:#000;min-height:480px;display:flex;align-items:center;justify-content:center;">
+                <iframe id="tour-iframe" src="" allowfullscreen
+                  style="width:100%;height:480px;border:none;display:none;"></iframe>
+                <div id="tour-placeholder" style="color:#fff;font-size:0.9rem;opacity:0.6;">
+                  Loading virtual tour…
+                </div>
+              </div>
+              <p style="font-size:0.78rem;color:var(--color-muted);margin-top:10px;text-align:center;">
+                Best experienced in full screen — click the expand icon in the tour viewer.
+              </p>
+            </div>
+
             <div class="tab-panel" id="tab-map">
               <div id="map"></div>
               <p style="font-size:0.82rem;color:var(--color-muted);margin-top:-20px;margin-bottom:24px;">
@@ -481,6 +495,17 @@
       ).join('');
     }
 
+    // Virtual tour
+    const tourUrl = p.virtual_tour_url || p.tour_url || '';
+    if (tourUrl) {
+      document.getElementById('tour-tab-btn').style.display = 'inline-flex';
+      const iframe = document.getElementById('tour-iframe');
+      const placeholder = document.getElementById('tour-placeholder');
+      iframe.src = tourUrl;
+      iframe.style.display = 'block';
+      placeholder.style.display = 'none';
+    }
+
     // Map — defer init until tab opens
     const lat = parseFloat(p.latitude);
     const lng = parseFloat(p.longitude);
@@ -511,6 +536,49 @@
 
       // Approximate circle to indicate area without revealing exact address
       L.circle([lat, lng], { radius: 200, color: '#2D6A4F', fillColor: '#2D6A4F', fillOpacity: 0.08, weight: 1 }).addTo(map);
+
+      // Overpass API — fetch nearby amenities
+      const AMENITY_ICONS = {
+        supermarket: '🛒', mall: '🏬', marketplace: '🏪', shop: '🏪',
+        bus_station: '🚌', bus_stop: '🚌', hospital: '🏥', clinic: '🏥',
+        pharmacy: '💊', school: '🏫', university: '🎓', restaurant: '🍽️',
+        cafe: '☕', bank: '🏦', atm: '🏧', fuel: '⛽', gym: '💪',
+        park: '🌳', police: '👮', place_of_worship: '⛪',
+      };
+      const radius = 1000; // metres
+      const overpassQuery = `
+        [out:json][timeout:10];
+        (
+          node["amenity"~"restaurant|cafe|hospital|clinic|pharmacy|school|university|bank|atm|fuel|gym|police|place_of_worship|bus_station"](around:${radius},${lat},${lng});
+          node["shop"~"supermarket|mall|convenience|bakery"](around:${radius},${lat},${lng});
+          node["highway"="bus_stop"](around:${radius},${lat},${lng});
+          node["leisure"="park"](around:${radius},${lat},${lng});
+        );
+        out body 40;
+      `;
+      fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: overpassQuery,
+      }).then(r => r.json()).then(data => {
+        const seen = new Set();
+        (data.elements || []).forEach(el => {
+          const name = el.tags.name || el.tags.amenity || el.tags.shop || el.tags.highway || el.tags.leisure || '';
+          const key  = `${el.lat?.toFixed(4)},${el.lon?.toFixed(4)}`;
+          if (!name || seen.has(key)) return;
+          seen.add(key);
+          const type = el.tags.amenity || el.tags.shop || el.tags.highway || el.tags.leisure || 'place';
+          const icon = AMENITY_ICONS[type] || '📍';
+          const amenIcon = L.divIcon({
+            html: `<div style="font-size:1rem;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));">${icon}</div>`,
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+          });
+          L.marker([el.lat, el.lon], { icon: amenIcon })
+            .addTo(map)
+            .bindPopup(`<b>${icon} ${name}</b><br><span style="font-size:0.78rem;color:#666;">${type.replace(/_/g,' ')}</span>`);
+        });
+      }).catch(() => {}); // Overpass failure is non-critical
     }
 
     // If map tab is already active, init now; otherwise defer

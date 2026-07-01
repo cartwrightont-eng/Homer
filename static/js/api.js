@@ -181,6 +181,7 @@ function initNav() {
     const user = Auth.getUser();
     const dashHref = user?.role === 'landlord' ? 'landlord-dashboard.html' : user?.role === 'service_provider' ? 'provider-dashboard.html' : 'tenant-dashboard.html';
     actionsEl.innerHTML = `
+      <a href="homerr-fix.html" class="btn btn--ghost btn--sm">HomerrFix</a>
       <a href="${dashHref}" class="btn btn--ghost">Dashboard</a>
       <button class="btn btn--primary" id="logout-btn">Sign out</button>`;
     document.getElementById('logout-btn')?.addEventListener('click', () => {
@@ -202,3 +203,29 @@ function initReveal() {
 window.apiFetch = apiFetch;
 API.getLandlordAnalytics = () => apiFetch('/landlord/analytics');
 API.getWallet = () => apiFetch('/wallet');
+
+
+/* ── Chat polling helper ──────────────────────────────────────────────
+   Call startChatPolling(convoId, callbackFn) to get messages refreshed
+   every 4 seconds. Call stopChatPolling() to cancel.
+*/
+let _chatPollInterval = null;
+
+function startChatPolling(convoId, onMessages) {
+  stopChatPolling();
+  async function poll() {
+    try {
+      const data = await API.getMessages(convoId);
+      if (data && typeof onMessages === 'function') onMessages(data);
+    } catch(e) {}
+  }
+  poll(); // immediate first call
+  _chatPollInterval = setInterval(poll, 4000);
+}
+
+function stopChatPolling() {
+  if (_chatPollInterval) {
+    clearInterval(_chatPollInterval);
+    _chatPollInterval = null;
+  }
+}

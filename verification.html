@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Verify your account — Homerr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --sage:       #2D5A3D;
+  --sage-mid:   #4A7A5A;
+  --sage-tint:  #E8F0EA;
+  --warm-white: #FAFAF8;
+  --border:     rgba(45,90,61,0.14);
+  --border-mid: rgba(45,90,61,0.24);
+  --text-main:  #1A1A1A;
+  --text-mid:   #4A5568;
+  --text-soft:  #718096;
+  --radius:     14px;
+  --radius-sm:  8px;
+  --shadow:     0 4px 24px rgba(0,0,0,0.07);
+  --amber:      #D97706;
+  --amber-tint: #FEF3C7;
+  --red:        #DC2626;
+  --red-tint:   #FEE2E2;
+  --green:      #16A34A;
+  --green-tint: #DCFCE7;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans:  'Inter', system-ui, sans-serif;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--warm-white);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(123,174,138,.13) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(45,90,61,.08) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+body > * { position: relative; z-index: 1; }
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 64px;
+  background: rgba(250,250,248,.88);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav__logo { font-family: var(--font-serif); font-size: 1.3rem; color: var(--sage); text-decoration: none; }
+.container { max-width: 680px; margin: 0 auto; padding: 48px 24px; }
+.page-title { font-family: var(--font-serif); font-size: 2rem; letter-spacing: -.02em; margin-bottom: 6px; }
+.page-sub { font-size: .88rem; color: var(--text-soft); margin-bottom: 36px; line-height: 1.6; }
+.card {
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.card__title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+.card__sub { font-size: .8rem; color: var(--text-soft); margin-bottom: 20px; }
+.doc-required {
+  display: flex; gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.6);
+  margin-bottom: 8px;
+  align-items: center;
+}
+.doc-required__icon { font-size: 1.2rem; flex-shrink: 0; }
+.doc-required__name { font-weight: 600; font-size: .86rem; }
+.doc-required__status { font-size: .74rem; margin-top: 2px; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: .72rem; font-weight: 600; }
+.badge--green { background: var(--green-tint); color: var(--green); }
+.badge--amber { background: var(--amber-tint); color: var(--amber); }
+.badge--gray  { background: #F3F4F6; color: #6B7280; }
+.badge--red   { background: var(--red-tint); color: var(--red); }
+.upload-zone {
+  border: 2px dashed var(--border-mid);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  background: rgba(255,255,255,.5);
+  margin-top: 16px;
+}
+.upload-zone:hover, .upload-zone.drag-over { border-color: var(--sage); background: var(--sage-tint); }
+.upload-zone__icon { font-size: 2rem; margin-bottom: 10px; }
+.upload-zone__label { font-weight: 600; font-size: .9rem; margin-bottom: 4px; }
+.upload-zone__sub { font-size: .78rem; color: var(--text-soft); }
+.upload-zone input[type=file] { display: none; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: .8rem; font-weight: 600; color: var(--text-mid); margin-bottom: 7px; }
+.form-group select {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  font-size: .86rem; font-family: var(--font-sans);
+  color: var(--text-main); background: white;
+}
+.form-group select:focus { outline: none; border-color: var(--sage); }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 22px; border-radius: 100px;
+  font-size: .84rem; font-weight: 600; cursor: pointer;
+  border: none; transition: all .2s; font-family: var(--font-sans);
+}
+.btn--primary { background: var(--sage); color: #fff; }
+.btn--primary:hover { background: var(--sage-mid); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.progress-bar {
+  height: 6px; border-radius: 3px;
+  background: #E5E7EB; overflow: hidden;
+  margin: 12px 0; display: none;
+}
+.progress-bar__fill { height: 100%; background: var(--sage); border-radius: 3px; transition: width .3s; width: 0%; }
+.alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: .82rem; margin-top: 12px; }
+.alert--error   { background: var(--red-tint);   color: var(--red);   border: 1px solid #FECACA; }
+.alert--success { background: var(--green-tint); color: var(--green); border: 1px solid #BBF7D0; }
+.preview-file {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--sage-tint); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); margin-top: 12px;
+}
+.preview-file__icon { font-size: 1.4rem; }
+.preview-file__name { font-size: .84rem; font-weight: 600; flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preview-file__size { font-size: .74rem; color: var(--text-soft); }
+.verified-banner {
+  background: var(--green-tint); border: 1px solid #BBF7D0;
+  border-radius: var(--radius); padding: 16px 20px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: .88rem; color: var(--green); font-weight: 600;
+  margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav__logo">Homerr</a>
+  <a href="#" id="nav-dash" style="font-size:.84rem;color:var(--text-mid);text-decoration:none;">Dashboard</a>
+</nav>
+
+<div class="container">
+  <div class="page-title">Account verification</div>
+  <p class="page-sub">
+    Submit your documents so Homerr can verify your identity and business details.
+    Landlords must be fully verified before listings go live.
+    Service providers need ID and a business permit.
+  </p>
+
+  <div id="verified-banner" class="verified-banner" style="display:none;">
+    ✅ Your account is fully verified — you can post listings and accept jobs.
+  </div>
+
+  <!-- Required docs status -->
+  <div class="card">
+    <div class="card__title">Verification status</div>
+    <div class="card__sub">Documents you need to submit</div>
+    <div id="docs-status">
+      <div style="font-size:.84rem;color:var(--text-soft);">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Upload form -->
+  <div class="card">
+    <div class="card__title">Upload a document</div>
+    <div class="card__sub">Accepted formats: PDF, JPG, PNG — max 10MB per file</div>
+
+    <div class="form-group">
+      <label>Document type</label>
+      <select id="doc-type">
+        <option value="national_id">National ID</option>
+        <option value="business_permit">Business permit / certificate of registration</option>
+        <option value="title_deed">Title deed</option>
+        <option value="kra_pin">KRA PIN certificate</option>
+        <option value="other">Other supporting document</option>
+      </select>
+    </div>
+
+    <label class="upload-zone" id="upload-zone" for="file-input">
+      <div class="upload-zone__icon">📎</div>
+      <div class="upload-zone__label">Drop file here or click to browse</div>
+      <div class="upload-zone__sub">PDF, JPG or PNG · max 10MB</div>
+      <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" />
+    </label>
+
+    <div id="file-preview" style="display:none;" class="preview-file">
+      <div class="preview-file__icon">📄</div>
+      <div class="preview-file__name" id="file-name"></div>
+      <div class="preview-file__size" id="file-size"></div>
+    </div>
+
+    <div class="progress-bar" id="progress-bar">
+      <div class="progress-bar__fill" id="progress-fill"></div>
+    </div>
+
+    <div id="upload-feedback"></div>
+
+    <button class="btn btn--primary" id="upload-btn" style="margin-top:16px;width:100%;justify-content:center;" disabled>
+      Upload document
+    </button>
+  </div>
+</div>
+
+<script src="static/js/api.js"></script>
+<script>
+if (!requireAuth()) {}
+
+const user = Auth.getUser();
+const role = user?.role;
+
+/* Nav */
+const dashLink = document.getElementById('nav-dash');
+dashLink.href = role === 'landlord' ? 'landlord-dashboard.html'
+              : role === 'service_provider' ? 'provider-dashboard.html'
+              : 'tenant-dashboard.html';
+dashLink.textContent = '← Back to dashboard';
+
+/* Required docs by role */
+const REQUIRED = role === 'landlord'
+  ? [{type:'national_id',label:'National ID',icon:'🪪'},
+     {type:'business_permit',label:'Business permit',icon:'📋'},
+     {type:'title_deed',label:'Title deed',icon:'🏠'},
+     {type:'kra_pin',label:'KRA PIN',icon:'📑'}]
+  : role === 'service_provider'
+  ? [{type:'national_id',label:'National ID',icon:'🪪'},
+     {type:'business_permit',label:'Business permit',icon:'📋'}]
+  : [{type:'national_id',label:'National ID',icon:'🪪'}];
+
+/* Load status */
+async function loadStatus() {
+  try {
+    const status = await API.getVerificationStatus();
+    const approved = new Set(status.approved_types || []);
+    const pending  = new Set(status.submitted_types?.filter(t => !approved.has(t)) || []);
+
+    if (status.fully_verified) {
+      document.getElementById('verified-banner').style.display = 'flex';
+    }
+
+    document.getElementById('docs-status').innerHTML = REQUIRED.map(doc => {
+      const isApproved = approved.has(doc.type);
+      const isPending  = pending.has(doc.type);
+      const badge = isApproved ? '<span class="badge badge--green">Approved ✓</span>'
+                  : isPending  ? '<span class="badge badge--amber">Under review</span>'
+                  :              '<span class="badge badge--gray">Not submitted</span>';
+      return `
+        <div class="doc-required">
+          <div class="doc-required__icon">${doc.icon}</div>
+          <div style="flex:1;">
+            <div class="doc-required__name">${doc.label}</div>
+            <div class="doc-required__status">${badge}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('docs-status').innerHTML =
+      '<div class="alert alert--error">Could not load verification status.</div>';
+  }
+}
+
+/* File selection */
+const fileInput  = document.getElementById('file-input');
+const uploadBtn  = document.getElementById('upload-btn');
+const uploadZone = document.getElementById('upload-zone');
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    document.getElementById('upload-feedback').innerHTML =
+      '<div class="alert alert--error">File too large — max 10MB.</div>';
+    return;
+  }
+  document.getElementById('file-name').textContent = file.name;
+  document.getElementById('file-size').textContent = (file.size / 1024).toFixed(0) + ' KB';
+  document.getElementById('file-preview').style.display = 'flex';
+  uploadBtn.disabled = false;
+  document.getElementById('upload-feedback').innerHTML = '';
+});
+
+/* Drag and drop */
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) { fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event('change')); }
+});
+
+/* Upload */
+uploadBtn.addEventListener('click', async () => {
+  const file    = fileInput.files[0];
+  const docType = document.getElementById('doc-type').value;
+  const fb      = document.getElementById('upload-feedback');
+  if (!file) return;
+
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = 'Uploading…';
+  const progressBar  = document.getElementById('progress-bar');
+  const progressFill = document.getElementById('progress-fill');
+  progressBar.style.display = 'block';
+
+  try {
+    /* Convert to base64 */
+    const base64 = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload  = () => {
+        progressFill.style.width = '40%';
+        res(reader.result);
+      };
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+
+    progressFill.style.width = '70%';
+
+    /* Upload to backend — stored as base64 data URL for demo.
+       In production, replace with a pre-signed S3 URL upload. */
+    await API.submitVerification(docType, base64, null);
+
+    progressFill.style.width = '100%';
+    fb.innerHTML = '<div class="alert alert--success">Document submitted for review. We typically review within 1 business day.</div>';
+    fileInput.value = '';
+    document.getElementById('file-preview').style.display = 'none';
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Upload document';
+    loadStatus();
+  } catch(e) {
+    fb.innerHTML = `<div class="alert alert--error">${e.message || 'Upload failed. Please try again.'}</div>`;
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = 'Upload document';
+  } finally {
+    setTimeout(() => { progressBar.style.display = 'none'; progressFill.style.width = '0%'; }, 1500);
+  }
+});
+
+loadStatus();
+</script>
+</body>
+</html>
