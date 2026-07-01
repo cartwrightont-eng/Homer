@@ -1,3 +1,4 @@
+import os
 
 import bcrypt
 from database import db_cursor
@@ -38,7 +39,8 @@ def authenticate_user(email, password):
         return None
     if not verify_password(password, user["password"]):
         return None
-    # if not user["email_verified"]:  # re-enable post-launch
+    if not user["email_verified"] and os.getenv("ALLOW_UNVERIFIED_LOGIN", "0") != "1":
+        return None
     return user
 
 def get_user_by_id(user_id):
@@ -727,22 +729,30 @@ def get_open_jobs(category=None, provider_lat=None, provider_lng=None):
 
 def mark_job_seen(job_id, provider_user_id):
     with db_cursor(commit=True) as (conn, cur):
+        cur.execute("SELECT id FROM service_providers WHERE user_id=%s", (provider_user_id,))
+        sp = cur.fetchone()
+        if not sp:
+            return None
         cur.execute("""
             UPDATE fix_jobs SET seen_by_provider=TRUE
             WHERE id=%s AND provider_id=%s
             RETURNING id
-        """, (job_id, provider_user_id))
+        """, (job_id, sp['id']))
         return cur.fetchone()
 
 
-def update_job_status(job_id, status, provider_id):
+def update_job_status(job_id, status, provider_user_id):
     """status: pending|accepted|en_route|arrived|in_progress|completed|cancelled"""
     with db_cursor(commit=True) as (conn, cur):
+        cur.execute("SELECT id FROM service_providers WHERE user_id=%s", (provider_user_id,))
+        sp = cur.fetchone()
+        if not sp:
+            return None
         cur.execute("""
             UPDATE fix_jobs SET status=%s, updated_at=NOW()
             WHERE id=%s AND provider_id=%s
             RETURNING *
-        """, (status, job_id, provider_id))
+        """, (status, job_id, sp['id']))
         return cur.fetchone()
 
 def get_tenant_jobs(tenant_id):
@@ -989,3 +999,68 @@ def delete_accommodation_photo(photo_id, owner_id):
             (photo_id, owner_id)
         )
         return cur.fetchone()
+
+def get_provider_services(provider_id):
+    with db_cursor() as (conn, cur):
+        cur.execute("""
+            SELECT * FROM provider_services
+            WHERE provider_id=%s
+            ORDER BY is_custom ASC, base_price ASC
+        """, (provider_id,))
+        return cur.fetchall()
+
+def get_providers_by_category(category):
+    with db_cursor() as (conn, cur):
+        cur.execute("""
+            SELECT sp.*, u.name, u.phone, u.profile_photo_url,
+                   sp.avg_rating,
+                   COUNT(ps.id) AS service_count,
+                   MIN(ps.base_price) FILTER (WHERE NOT ps.is_custom) AS min_price
+            FROM service_providers sp
+            JOIN users u ON u.id = sp.user_id
+            LEFT JOIN provider_services ps ON ps.provider_id = sp.id
+            WHERE sp.category=%s AND sp.is_verified=TRUE AND sp.is_online=TRUE
+            GROUP BY sp.id, u.name, u.phone, u.profile_photo_url, sp.avg_rating
+            ORDER BY sp.current_lat IS NULL ASC, sp.avg_rating DESC NULLS LAST
+        """, (category,))
+        return cur.fetchall()
+
+def submit_quote(job_id, provider_user_id, amount):
+    with db_cursor(commit=True) as (conn, cur):
+        cur.execute("""
+            UPDATE fix_jobs SET quote_amount=%s, status='quote_sent', updated_at=NOW()
+            WHERE id=%s AND provider_id=%s
+            RETURNING *
+        """, (amount, job_id, provider_user_id))
+        return cur.fetchone()
+
+def accept_quote(job_id, tenant_id):
+    with db_cursor(commit=True) as (conn, cur):
+        cur.execute("""
+            UPDATE fix_jobs SET quote_accepted=TRUE, status='confirmed', updated_at=NOW()
+            WHERE id=%s AND tenant_id=%s AND quote_amount IS NOT NULL
+            RETURNING *
+        """, (job_id, tenant_id))
+        return cur.fetchone()
+
+def create_job_with_provider(tenant_id, provider_user_id, service_name,
+                              description, address, urgency, job_type):
+    with db_cursor(commit=True) as (conn, cur):
+        cur.execute("SELECT id FROM service_providers WHERE user_id=%s LIMIT 1",
+                    (provider_user_id,))
+        sp = cur.fetchone()
+        if not sp:
+            return None
+        cur.execute("""
+            INSERT INTO fix_jobs
+            (tenant_id, provider_id, service_name, category, description,
+             address, urgency, job_type, status)
+            VALUES (%s,%s,%s,
+                (SELECT category FROM service_providers WHERE id=%s),
+                %s,%s,%s,%s,
+                CASE WHEN %s='flat' THEN 'confirmed' ELSE 'pending_quote' END)
+            RETURNING *
+        """, (tenant_id, provider_user_id, service_name, sp['id'],
+              description, address, urgency, job_type, job_type))
+        return cur.fetchone()
+
